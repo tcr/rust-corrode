@@ -9,4 +9,10 @@ authors = [
 description = "C to Rust Translator (ported from Haskell)."
 repository = "http://github.com/tcr/corrode-but-in-rust"
 homepage = "http://github.com/tcr/corrode-but-in-rust"
-license = "LGPLv3"
+license = "GPL-2.0"
+
+[dependencies]
+num = "0.1"
+num-derive = "0.1"
+matches = "0.1.6"
+lazy_static = "0.2"
