@@ -27,9 +27,9 @@ pub use self::LitIntRepr::*;
 #[derive(Debug, Eq)]
 pub enum Lit {
     LitByteStr(String),
-    LitByteChar(Char),
+    LitByteChar(char),
     LitBool(bool),
-    LitInt(Integer, LitIntRepr, Type),
+    LitInt(isize, LitIntRepr, Type),
     LitFloat(String, Type)
 }
 pub use self::Lit::*;
@@ -72,14 +72,14 @@ pub fn pPrintBlock(_0: Doc, _1: Block) -> Doc {
     match (_0, _1) {
         (pre, Block([], e)) => {
             sep(vec![
-                    __op_doc_conat(pre, text("{".to_string())),
+                    __op_doc_concat(pre, text("{".to_string())),
                     nest(4, (maybe(empty, pPrint, e))),
                     text("}".to_string()),
                 ])
         },
         (pre, Block(ss, e)) => {
             sep(vec![
-                    __op_doc_conat(pre, text("{".to_string())),
+                    __op_doc_concat(pre, text("{".to_string())),
                     nest(4, (maybe(empty, pPrint, e))),
                     text("}".to_string()),
                 ])
