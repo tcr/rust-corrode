@@ -31,11 +31,11 @@ pub fn parseCrateMap() -> Either<String, CrateMap> {
 
     let root = |_0| {
         match (_0) {
-            (crate, []) => {
-                crate
+            (__crate, []) => {
+                __crate
             },
-            (crate, unassigned) => {
-                crate
+            (__crate, unassigned) => {
+                __crate
             },
         }
     };
@@ -44,25 +44,25 @@ pub fn parseCrateMap() -> Either<String, CrateMap> {
 
     let parseLine = |_0, _1| {
         match (_0, _1) {
-            (["-", item], (crate, items)) => {
+            (["-", item], (__crate, items)) => {
                 /*do*/ {
                     let item_q = parseItem(item);
 
-                    (crate, __op_concat(item_q, items))
+                    (__crate, __op_concat(item_q, items))
                 }
             },
-            ([name], (crate, items)) => {
+            ([name], (__crate, items)) => {
                 /*do*/ {
                     let item_q = parseItem(item);
 
-                    (crate, __op_concat(item_q, items))
+                    (__crate, __op_concat(item_q, items))
                 }
             },
             (contents, _) => {
                 /*do*/ {
                     let item_q = parseItem(item);
 
-                    (crate, __op_concat(item_q, items))
+                    (__crate, __op_concat(item_q, items))
                 }
             },
         }

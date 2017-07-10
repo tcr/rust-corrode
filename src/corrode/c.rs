@@ -847,7 +847,7 @@ pub fn interpretInitializer(ty: CType, initial: CInit) -> EnvMonad<s, Rust::Expr
                         },
                         IsStruct(_, fields) => {
                             /*do*/ {
-                                let fields_q = IntMap::fromDistinctAscList(zip(vec![0(::::)], __map!(snd, fields)));
+                                let fields_q = IntMap::fromDistinctAscList(__map!(snd, fields).enumerate());
 
                                 let missing = IntMap::difference(fields_q, initials);
 
@@ -910,7 +910,7 @@ pub fn interpretInitializer(ty: CType, initial: CInit) -> EnvMonad<s, Rust::Expr
                         },
                         IsStruct(_, fields) => {
                             /*do*/ {
-                                let fields_q = IntMap::fromDistinctAscList(zip(vec![0(::::)], __map!(snd, fields)));
+                                let fields_q = IntMap::fromDistinctAscList(__map!(snd, fields).enumerate());
 
                                 let missing = IntMap::difference(fields_q, initials);
 
@@ -938,7 +938,11 @@ pub fn interpretInitializer(ty: CType, initial: CInit) -> EnvMonad<s, Rust::Expr
                     /*do*/ {
                         let expr_q = interpretExpr(true, expr);
 
-                        compatibleInitializer(if resultType(expr_q) { () }, ty(then, __pure, scalar((castTo(ty, expr_q)), else, badSource, initial, "initializer for incompatible type".to_string())))
+                        if compatibleInitializer(resultType(expr_q), ty) { 
+                            __pure(scalar((castTo(ty, expr_q))))
+                        } else {
+                            badSource(initial, "initializer for incompatible type".to_string())
+                        }
                     }
                 },
                 CInitList(list, _) => {
@@ -993,7 +997,7 @@ pub fn interpretFunction(CFunDef(specs, declr, __OP__, CDeclr(mident, _, _, _, _
                 let f_q = mapExceptT((local(setRetTy)), scope(/*do*/ {
                                 let formals = sequence(/* Expr::Generator */ Generator);
 
-                                let returnValue = (if name { () } == "_c_main".to_string()(then, Some, 0, else, None));
+                                let returnValue = (if name == "_c_main" { Some(0) } else { None });
 
                                 let returnStatement = Rust::Stmt((Rust::Return(returnValue)));
 
@@ -1431,7 +1435,7 @@ pub fn cfgToRust(_node: node, build: CSourceBuildCFGT<s, (Vec<Rust::Stmt>, Termi
 
         let (hasGoto, structured) = structureCFG(mkBreak, mkContinue, mkLoop, mkIf, mkGoto, mkMatch, cfg);
 
-        __op_concat(if hasGoto { declCurrent }, structured(else, structured))
+        __return(if hasGoto { __op_concat(declCurrent, structured) } else { structured })
     }
 }
 
@@ -2148,7 +2152,7 @@ pub fn compound(expr: CExpr, returnOld: bool, demand: bool, op: CAssignOp, lhs: 
 
         let duplicateLHS = (isJust(op_q) || demand);
 
-        let (bindings1, dereflhs, boundrhs) = (if not(duplicateLHS) { () } || hasNoSideEffects((result(lhs)), then, (vec![], lhs, rhs), else, {
+        let (bindings1, dereflhs, boundrhs) = (if not(duplicateLHS) || hasNoSideEffects(result(lhs)) { (vec![], lhs, rhs) } else {
                     let lhsvar = Rust::VarName("_lhs".to_string());
 
                     let rhsvar = Rust::VarName("_rhs".to_string());
@@ -2160,7 +2164,7 @@ pub fn compound(expr: CExpr, returnOld: bool, demand: bool, op: CAssignOp, lhs: 
                         result: Rust::Deref((Rust::Var(lhsvar)))
                     }, rhs {
                         result: Rust::Var(rhsvar)
-                    })                }));
+                    })                });
 
         let rhs_q = match op_q {
                 Some(o) => {

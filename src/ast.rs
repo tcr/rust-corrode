@@ -65,7 +65,7 @@ pub enum Stmt {
 pub use self::Stmt::*;
 
 #[derive(Debug)]
-pub struct Block(Vec<Stmt>, Option<Expr>);
+pub struct Block(pub Vec<Stmt>, pub Option<Expr>);
 
 
 pub fn pPrintBlock(_0: Doc, _1: Block) -> Doc {
@@ -88,11 +88,11 @@ pub fn pPrintBlock(_0: Doc, _1: Block) -> Doc {
 }
 
 #[derive(Debug)]
-pub struct Attribute(String);
+pub struct Attribute(pub String);
 
 
 #[derive(Debug)]
-pub struct Item(Vec<Attribute>, Visibility, ItemKind);
+pub struct Item(pub Vec<Attribute>, pub Visibility, pub ItemKind);
 
 
 #[derive(Debug)]

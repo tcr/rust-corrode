@@ -346,7 +346,7 @@ pub fn depthFirstOrder(CFG(start, blocks): CFG<k, s, c>) -> CFG<DepthFirst, s, c
 
     let start_q = 0;
 
-    let mapping = IntMap::fromList((zip(__final, vec![start_q::::])));
+    let mapping = IntMap::fromList((__final.enumerate().map(|(a, b)| (b, a + start_q))));
 
     let rewrite = |label| {
         IntMap::findWithDefault((__error!("basic block disappeared".to_string())), label, mapping)

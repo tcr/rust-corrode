@@ -62,7 +62,7 @@ pub fn itemIdioms(_0: Rust::Item) -> Rust::Item {
             Rust::Item(attrs, vis, (Rust::Function(fattrs, name, formals, ret, (tailBlock(b)))))
         },
         i => {
-            Rust::Item(attrs, vis, (Rust::Function(fattrs, name, formals, ret, (tailBlock(b)))))
+            i
         },
     }
 }
