@@ -4,7 +4,7 @@
 extern crate num;
 
 pub mod support;
-// pub mod idiomatic;
+pub mod idiomatic;
 pub mod ast;
 // pub mod corrode;
 
