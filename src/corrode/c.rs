@@ -23,6 +23,9 @@
 // use Language::Rust::Corrode::CrateMap;
 // use Text::PrettyPrint::HughesPJClass;
 
+use ast as Rust;
+use crate_map;
+
 pub type EnvMonad<s> = ExceptT<String, RWST<FunctionContext, Output, EnvState<s>, ST<s>>>;
 
 pub struct FunctionContext{
@@ -43,7 +46,7 @@ fn outputItems(a: Output) -> Vec<Rust::Item> { a.outputItems }
 fn outputExterns(a: Output) -> Map::Map<String, Rust::ExternItem> { a.outputExterns }
 fn outputIncomplete(a: Output) -> Set::Set<String> { a.outputIncomplete }
 
-pub fn emitItems(items: Vec<Rust::Item>) -> EnvMonad<s, ()> {
+pub fn emitItems<s>(items: Vec<Rust::Item>) -> EnvMonad<s, ()> {
     lift(tell(mempty {
                 outputItems: items
             }))

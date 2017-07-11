@@ -1,7 +1,9 @@
 // Original file: "Rust.hs"
-// File auto-generated using Corollary.
+
+#![allow(unused_parens)]
 
 extern crate num;
+#[macro_use] extern crate maplit;
 
 pub mod support;
 pub mod idiomatic;

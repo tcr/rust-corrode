@@ -189,7 +189,7 @@ pub struct Structure<s, c>{
     structureBody: Structure_q<s, c, Vec<Structure<s, c>>>
 }
 fn structureEntries(a: Structure) -> IntSet::IntSet { a.structureEntries }
-fn structureBody(a: Structure) -> Structure_q<s, c, Vec<Structure<s, c>>> { a.structureBody }
+fn structureBod<s, c>(a: Structure) -> Structure_q<s, c, Vec<Structure<s, c>>> { a.structureBody }
 
 pub fn prettyStructure() -> Doc {
 
@@ -199,10 +199,12 @@ pub fn prettyStructure() -> Doc {
                 __op_line_concat(text((__op_addadd(show(s), ";".to_string()))), text((show(term))))
             },
             Structure(entries, Loop(body)) => {
-                __op_line_concat(text((__op_addadd(show(s), ";".to_string()))), text((show(term))))
+                prettyGroup(entries, "loop".to_string(), prettyStructure(body))
             },
             Structure(entries, Multiple(handlers, unhandled)) => {
-                __op_line_concat(text((__op_addadd(show(s), ";".to_string()))), text((show(term))))
+                prettyGroup(entries, "match".to_string(), /*TODO*/ ())
+                    // vcat [ text (show entry ++ " =>") $+$ nest 2 (prettyStructure handler) | (entry, handler) <- IntMap.toList handlers ]
+                    // $+$ if null unhandled then mempty else (text "_ =>" $+$ nest 2 (prettyStructure unhandled))
             },
         }
     };
@@ -214,11 +216,11 @@ pub fn prettyStructure() -> Doc {
     vcat(__map!(go))
 }
 
-pub fn relooperRoot(CFG(entry, blocks): CFG<k, s, c>) -> Vec<Structure<s, c>> {
+pub fn relooperRoot<k, c, s>(CFG(entry, blocks): CFG<k, s, c>) -> Vec<Structure<s, c>> {
     relooper((IntSet::singleton(entry)), IntMap::map((|BasicBlock(s, term)| { (s, fmap(GoTo, term)) }), blocks))
 }
 
-pub fn relooper(entries: IntSet::IntSet, blocks: IntMap::IntMap<StructureBlock<s, c>>) -> Vec<Structure<s, c>> {
+pub fn relooper<c, s>(entries: IntSet::IntSet, blocks: IntMap::IntMap<StructureBlock<s, c>>) -> Vec<Structure<s, c>> {
 
     let strictReachableFrom = flipEdges((go((IntMap::map(successors, blocks)))));
 
@@ -289,10 +291,10 @@ pub fn flipEdges(edges: IntMap::IntMap<IntSet::IntSet>) -> IntMap::IntMap<IntSet
     IntMap::unionsWith(IntSet::union, /* Expr::Generator */ Generator)
 }
 
-pub fn simplifyStructure() -> Vec<Structure<s, c>> {
+pub fn simplifyStructure<s, c>() -> Vec<Structure<s, c>> {
 
     let descend = |structure| {
-        structure {
+        __assign!(structure, {
             structureBody: match structureBody(structure) {
                     Simple(s, term) => {
                         Simple(s, term)
@@ -304,7 +306,7 @@ pub fn simplifyStructure() -> Vec<Structure<s, c>> {
                         Loop((simplifyStructure(body)))
                     },
                 }
-        }
+        })
     };
 
     let go = |_0, _1| {
@@ -361,7 +363,15 @@ pub fn depthFirstOrder(CFG(start, blocks): CFG<k, s, c>) -> CFG<DepthFirst, s, c
     CFG(start_q, blocks_q)
 }
 
-pub fn structureCFG(mkBreak: fn(Option<Label>) -> s, mkContinue: fn(Option<Label>) -> s, mkLoop: fn(Label) -> fn(s) -> s, mkIf: fn(c) -> fn(s) -> fn(s) -> s, mkGoto: fn(Label) -> s, mkMatch: fn(Vec<(Label, s)>) -> fn(s) -> s, cfg: CFG<DepthFirst, s, c>) -> (bool, s) {
+pub fn structureCFG<c, s>(
+    mkBreak: fn(Option<Label>) -> s, 
+    mkContinue: fn(Option<Label>) -> s, 
+    mkLoop: fn(Label, s) -> s, 
+    mkIf: fn(c, s, s) -> s, 
+    mkGoto: fn(Label) -> s, 
+    mkMatch: fn(Vec<(Label, s)>, s) -> s,
+    cfg: CFG<DepthFirst, s, c>
+) -> (bool, s) {
 
     let root = simplifyStructure((relooperRoot(cfg)));
 

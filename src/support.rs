@@ -827,19 +827,6 @@ pub fn seq<A, B>(a: A, b: B) -> B {
 
 // Map things
 
-pub mod Map {
-    pub fn insert<T>(mut okay: Vec<T>, key: isize, value: T) -> Vec<T> {
-        okay.push(value);
-        okay
-    }
-
-    pub fn lookup<T>(value: T, inside: Vec<T>) -> isize {
-        //TODO
-        0
-    }
-}
-
-
 use std::hash::Hash;
 use std::fmt::Debug;
 use std::collections::HashSet;
@@ -896,5 +883,88 @@ pub fn __op_rshift(left: isize, right: isize) {
     unreachable!();
 }
 
+
+// Just Map things~*
+
+pub mod Map {
+    use std::collections::HashMap;
+
+    pub fn lookup<A, B: Clone>(value: A, inside: HashMap<A, B>) -> Option<B> {
+        inside.get(value).clone()
+    }
+
+    pub fn delete<A, B>(key: A, mut input: HashMap<A, B>) -> HashMap<A, B> {
+        input.remove(key);
+        input
+    }
+
+    pub fn insert<A, B>(key: A, value: B, mut input: HashMap<A, B>) -> HashMap<A, B> {
+        input.insert(key, value);
+        input
+    }
+
+    pub fn fromList<A, B>(_: Vec<(A, B)>) -> HashMap<A, B> {
+        // TODO
+        hashmap![]
+    }
+
+    pub fn unionWith() -> () {
+
+    }
+
+    pub fn fromListWith() -> () {
+        
+    }
+
+    pub fn empty<A, B>() -> HashMap<A, B> {
+        hashmap![]
+    }
+
+    pub type Map<A, B> = HashMap<A, B>;
+}
+
+
+
+pub mod IntMap {
+    use std::collections::HashMap;
+
+    pub fn lookup<B: Clone>(value: isize, inside: HashMap<isize, B>) -> Option<B> {
+        inside.get(value).clone()
+    }
+
+    pub fn delete<B>(key: isize, mut input: HashMap<isize, B>) -> HashMap<isize, B> {
+        input.remove(Akey;
+        input
+    }
+
+    pub fn insert<B>(key: isize, value: B, mut input: HashMap<isize, B>) -> HashMap<isize, B> {
+        input.insert(key, value);
+        input
+    }
+
+    pub fn fromList<B>(_: Vec<(isize, B)>) -> HashMap<isize, B> {
+        // TODO
+        hashmap![]
+    }
+
+    pub fn unionWith() -> () {
+
+    }
+
+
+    pub fn intersectionWith() -> () {
+
+    }
+
+    pub fn fromListWith() -> () {
+        
+    }
+
+    pub fn empty<B>() -> HashMap<isize, B> {
+        hashmap![]
+    }
+
+    pub type IntMap<B> = HashMap<isize, B>;
+}
 
 

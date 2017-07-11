@@ -35,7 +35,7 @@ pub fn parseCrateMap() -> Either<String, CrateMap> {
                 __crate
             },
             (__crate, unassigned) => {
-                __crate
+                Map::insert("".to_string(), unassigned, __crate)
             },
         }
     };
@@ -51,14 +51,11 @@ pub fn parseCrateMap() -> Either<String, CrateMap> {
                     (__crate, __op_concat(item_q, items))
                 }
             },
-            ([name], (__crate, items)) => {
-                /*do*/ {
-                    let item_q = parseItem(item);
-
-                    (__crate, __op_concat(item_q, items))
-                }
+            ([name], (__crate, items)) if isSuffixOf(":", name) => {
+                __return(Map::insert(init(name), items(__crate), []))
             },
             (contents, _) => {
+                Left(unwords(vec!["invalid crate map entry:"].extend(contents)))
                 /*do*/ {
                     let item_q = parseItem(item);
 
@@ -124,7 +121,17 @@ pub fn splitModuleMap(modName: String, crates: CratesMap) -> (ModuleMap, CratesM
 }
 
 pub fn rewritesFromCratesMap(crates: CratesMap) -> ItemRewrites {
-    Map::fromList(/* Expr::Generator */ Generator)
+    //TODO
+    // Map::fromList
+    //     [ (item, setCrate [modName, new])
+    //     | (crateName, mods) <- Map::toList(crates)
+    //     , let setCrate = match crateName 
+    //             "" -> id
+    //             _ -> (crateName :)
+    //     , (modName, items) <- Map::toList(mods)
+    //     , (item, new) <- items
+    //     ]
+    // )
 }
 
 

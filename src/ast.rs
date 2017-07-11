@@ -9,11 +9,11 @@
 // use Text::PrettyPrint::HughesPJClass;
 
 #[derive(Debug, Eq)]
-pub struct Lifetime(String);
+pub struct Lifetime(pub String);
 
 
 #[derive(Debug, Eq)]
-pub struct Type(String);
+pub struct Type(pub String);
 
 
 #[derive(Debug, Eq)]
@@ -35,11 +35,10 @@ pub enum Lit {
 pub use self::Lit::*;
 
 #[derive(Debug, Eq)]
-pub struct Var(String);
-
+pub struct VarName(pub String);
 
 #[derive(Debug)]
-pub struct Path(Vec<String>);
+pub struct Path(pub Vec<String>);
 
 
 #[derive(Debug, Eq)]
