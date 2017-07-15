@@ -3,6 +3,15 @@
 
 #[macro_use] use corollary_support::*;
 
+#[macro_export]
+macro_rules! __fmap {
+    ($fn: expr, $target: expr) => {
+        $target.into_iter()
+            .map($fn)
+            .collect::<Vec<_>>()
+    }
+}
+
 // NOTE: These imports are advisory. You probably need to change them to support Rust.
 // use Data::Foldable;
 // use Data::List;
@@ -31,7 +40,7 @@ pub fn parseCrateMap() -> Either<String, CrateMap> {
 
     let root = |_0| {
         match (_0) {
-            (__crate, []) => {
+            (__crate, right) if right.len() == 0 => {
                 __crate
             },
             (__crate, unassigned) => {
@@ -44,62 +53,65 @@ pub fn parseCrateMap() -> Either<String, CrateMap> {
 
     let parseLine = |_0, _1| {
         match (_0, _1) {
-            (["-", item], (__crate, items)) => {
+            (__crate, items) if _0.len() == 2 && _0[0] == "-" => {
+                item = _0[1];
                 /*do*/ {
                     let item_q = parseItem(item);
 
                     (__crate, __op_concat(item_q, items))
                 }
             },
-            ([name], (__crate, items)) if isSuffixOf(":", name) => {
-                __return(Map::insert(init(name), items(__crate), []))
-            },
-            (contents, _) => {
-                Left(unwords(vec!["invalid crate map entry:"].extend(contents)))
-                /*do*/ {
-                    let item_q = parseItem(item);
-
-                    (__crate, __op_concat(item_q, items))
-                }
-            },
-        }
-    };
-
-    let parseItem = |contents| {
-        match parseItemKind(contents) {
-            (kind, [name]) => {
-                ((kind, name), name)
-            },
-            (kind, [old, "as", new]) => {
-                ((kind, old), new)
+            (__crate, items) if _0.len() == 1 && isSuffixOf(":", _0[0]) => {
+                __return(Map::insert(init(_0[0]), items(__crate), []))
             },
             _ => {
-                Left((unwords((__op_concat("unsupported crate map item:".to_string(), contents)))))
+                Left(unwords(vec!["invalid crate map entry:"].extend(_0)))
+                /*do*/ {
+                    let item_q = parseItem(item);
+
+                    (__crate, __op_concat(item_q, items))
+                }
             },
         }
     };
 
-    let parseItemKind = |_0| {
-        match (_0) {
-            ["enum", rest] => {
+    fn parseItem(contents: Vec<String>) -> Either<String, ((ItemKind, String), String)> {
+        let (kind, rest) = parseItemKind(contents);
+        if &rest == &[name] {
+            Right(((kind, name), name))
+        } else if &rest = &[old, "as", new] {
+            Right(((kind, old), new))
+        } else {
+            Left((unwords((__op_concat("unsupported crate map item:".to_string(), contents)))))
+        }
+    }
+
+    fn parseItemKind(mut _0: Vec<String>) -> (ItemKind, Vec<String>) {
+        let left = _0.remove(0);
+        //TODO check out arms
+        match (left, _0) {
+            ("enum", rest) => {
                 (Enum, rest)
             },
-            ["struct", rest] => {
+            ("struct", rest) => {
                 (Enum, rest)
             },
-            ["union", rest] => {
+            ("union", rest) => {
                 (Enum, rest)
             },
-            ["typedef", rest] => {
+            ("typedef", rest) => {
                 (Enum, rest)
             },
-            rest => {
+            (left, mut rest) => {
+                rest.insert(0, left);
                 (Enum, rest)
             },
         }
-    };
+    }
 
-    fmap(root, foldrM(parseLine, (Map::empty, vec![]), filter((not(null)), __map!(cleanLine, lines))))
+    __fmap!(root, __foldrM!(parseLine, 
+        (Map::empty, vec![]), 
+        __filter!(|x| not(null(x)), __map!(cleanLine, lines))))
 }
 
 pub fn mergeCrateMaps() -> Map::Map<String, CrateMap> {
@@ -107,17 +119,18 @@ pub fn mergeCrateMaps() -> Map::Map<String, CrateMap> {
 }
 
 pub fn splitModuleMap(modName: String, crates: CratesMap) -> (ModuleMap, CratesMap) {
-    fromMaybe((vec![], crates), /*do*/ {
-            let thisCrate = Map::lookup("".to_string(), crates);
-
-            let thisModule = Map::lookup(modName, thisCrate);
-
+    if let Some(thisCrate) = Map::lookup("".to_string(), crates) {
+        if let Some(thisModule) = Map::lookup(modName, thisCrate) {
             let thisCrate_q = Map::delete(modName, thisCrate);
 
             let crates_q = Map::insert("".to_string(), thisCrate_q, crates);
 
-            (thisModule, crates_q)
-        })
+            return (thisModule, crates_q);
+        }
+    }
+
+    //default
+    (vec![], crates)
 }
 
 pub fn rewritesFromCratesMap(crates: CratesMap) -> ItemRewrites {

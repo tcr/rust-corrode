@@ -5,7 +5,7 @@
 extern crate num;
 #[macro_use] extern crate maplit;
 
-pub mod support;
+#[macro_use] pub mod support;
 pub mod idiomatic;
 pub mod ast;
 pub mod corrode;

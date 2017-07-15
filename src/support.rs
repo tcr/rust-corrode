@@ -139,6 +139,10 @@ pub fn words(input: String) -> Vec<String> {
     input.split_whitespace().map(|x| x.to_string()).collect()
 }
 
+pub fn unwords(input: Vec<String>) -> String {
+    input.join(" ")
+}
+
 pub trait Lengthable {
     fn get_len(&self) -> isize;
 }
@@ -710,6 +714,39 @@ macro_rules! __fmap {
 }
 
 #[macro_export]
+macro_rules! __filter {
+    ($fn: expr) => {
+        //TODO reject this
+        panic!("need two arguments filter")
+    };
+    ($fn: expr, $target: expr) => {
+        $target.into_iter()
+            .filtermap($fn)
+            .collect::<Vec<_>>()
+    }
+}
+
+#[macro_export]
+macro_rules! __foldrM {
+    ($fn: expr, $base: expr, $target: expr) => {
+        $target.into_iter()
+            .rev()
+            .fold($base, $fn)
+            .collect::<Vec<_>>()
+    }
+}
+
+#[macro_export]
+macro_rules! __foldr {
+    ($fn: expr, $base: expr, $target: expr) => {
+        $target.into_iter()
+            .rev()
+            .fold($base, $fn)
+            .collect::<Vec<_>>()
+    }
+}
+
+#[macro_export]
 macro_rules! __concatMap {
     ($fn: expr, $target: expr) => {
         $target.into_iter()
@@ -960,11 +997,59 @@ pub mod IntMap {
         
     }
 
+    pub fn findWithDefault() -> () {
+
+    }
+
+    pub fn keysSet() -> () {
+
+    }
+
+    pub fn elems() -> () {
+
+    }
+
     pub fn empty<B>() -> HashMap<isize, B> {
         hashmap![]
+    }
+
+    pub fn intersection() -> () {
+
+    }
+
+    pub fn fromSet() -> () {
+
     }
 
     pub type IntMap<B> = HashMap<isize, B>;
 }
 
+pub mod IntSet {
+    use std::collections::HashSet;
 
+    pub fn empty<B>() -> HashSet<isize, B> {
+        hashset![]
+    }
+
+    pub fn insert() -> () {
+
+    }
+
+    pub fn difference() -> () {
+
+    }
+
+    pub fn unions() -> () {
+        
+    }
+
+    pub fn member() -> () {
+
+    }
+
+    pub fn null() -> bool {
+        false
+    }
+
+    pub type IntSet = HashSet<isize>;
+}
