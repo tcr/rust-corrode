@@ -54,7 +54,7 @@ pub fn parseCrateMap() -> Either<String, CrateMap> {
     let parseLine = |_0, _1| {
         match (_0, _1) {
             (__crate, items) if _0.len() == 2 && _0[0] == "-" => {
-                item = _0[1];
+                let item = _0[1];
                 /*do*/ {
                     let item_q = parseItem(item);
 
@@ -77,9 +77,12 @@ pub fn parseCrateMap() -> Either<String, CrateMap> {
 
     fn parseItem(contents: Vec<String>) -> Either<String, ((ItemKind, String), String)> {
         let (kind, rest) = parseItemKind(contents);
-        if &rest == &[name] {
+        if rest.len() == 1 {
+            let name = rest[0].clone();
             Right(((kind, name), name))
-        } else if &rest = &[old, "as", new] {
+        } else if rest.len() == 3 && rest[1] == "as" {
+            let old = rest[0].clone();
+            let new = rest[2].clone();
             Right(((kind, old), new))
         } else {
             Left((unwords((__op_concat("unsupported crate map item:".to_string(), contents)))))

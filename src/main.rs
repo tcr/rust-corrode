@@ -1,9 +1,13 @@
 // Original file: "Rust.hs"
 
+#![feature(box_syntax, box_patterns)]
+#![feature(slice_patterns)]
+
 #![allow(unused_parens)]
 
 extern crate num;
 #[macro_use] extern crate maplit;
+extern crate parser_c;
 
 #[macro_use] pub mod support;
 pub mod idiomatic;

@@ -1374,7 +1374,8 @@ a `return;` statement to catch problems with `void` functions which miss a `retu
 unreachable).
 
 ```haskell
-                let returnValue = if name == "_c_main" then Just 0 else Nothing
+                let returnValue = if name == "_c_main" then Just 0
+                                                       else Nothing
                     returnStatement = Rust.Stmt (Rust.Return returnValue)
 ```
 
@@ -2880,10 +2881,9 @@ a copy of the old value before performing the assignment.
             if not demand
             then ([], Nothing)
             else if not returnOld
-            then ([], Just (result dereflhs))
-            else
-                let oldvar = Rust.VarName "_old"
-                in ([Rust.Let Rust.Immutable oldvar Nothing (Just (result dereflhs))], Just (Rust.Var oldvar))
+            then ([], Just (result dereflhs)) else
+                    let oldvar = Rust.VarName "_old"
+                    in ([Rust.Let Rust.Immutable oldvar Nothing (Just (result dereflhs))], Just (Rust.Var oldvar))
 ```
 
 Now we put together the generated let-bindings, assignment statement,
@@ -3822,15 +3822,16 @@ error; there must be an intervening pointer.
     derive (CArrDeclr quals arraySize _) = return $ \ itype ->
         if typeIsFunc itype
         then badSource declr "function as array element type"
-        else do
-            sizeExpr <- case arraySize of
-                CArrSize _ sizeExpr -> return sizeExpr
-                CNoArrSize _ -> unimplemented declr
-            size <- interpretConstExpr sizeExpr
-            return itype
-                { typeMutable = mutable quals
-                , typeRep = IsArray (typeMutable itype) (fromInteger size) (typeRep itype)
-                }
+        else
+            do
+                sizeExpr <- case arraySize of
+                    CArrSize _ sizeExpr -> return sizeExpr
+                    CNoArrSize _ -> unimplemented declr
+                size <- interpretConstExpr sizeExpr
+                return itype
+                    { typeMutable = mutable quals
+                    , typeRep = IsArray (typeMutable itype) (fromInteger size) (typeRep itype)
+                    }
 ```
 
 ```haskell

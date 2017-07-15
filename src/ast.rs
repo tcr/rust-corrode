@@ -13,7 +13,7 @@ pub struct Lifetime(pub String);
 
 
 #[derive(Debug, Eq)]
-pub struct Type(pub String);
+pub struct TypeName(pub String);
 
 
 #[derive(Debug, Eq)]
@@ -38,7 +38,7 @@ pub use self::Lit::*;
 pub struct VarName(pub String);
 
 #[derive(Debug)]
-pub struct Path(pub Vec<String>);
+pub struct PathSegments(pub Vec<String>);
 
 
 #[derive(Debug, Eq)]

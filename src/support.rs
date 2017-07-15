@@ -50,6 +50,10 @@ impl<A> OpConcatable for Vec<A> {
     }
 }
 
+pub fn __op_ne<A: PartialEq, B: PartialEq>(left: A, right: B) -> bool {
+    left != right
+}
+
 
 pub struct IO<A: Sized>(A);
 
@@ -763,15 +767,6 @@ macro_rules! __error {
     }
 }
 
-#[macro_export]
-macro_rules! __foldr {
-    ($fn: expr, $target: expr) => {
-        $target.into_iter()
-            .map($fn)
-            .collect::<Vec<_>>()
-    }
-}
-
 
 
 
@@ -868,27 +863,43 @@ use std::hash::Hash;
 use std::fmt::Debug;
 use std::collections::HashSet;
 
-#[derive(Clone, Debug)]
-pub struct Set<T: Eq + Hash>(HashSet<T>);
+pub mod Set {
+    use std::hash::Hash;
+    use std::fmt::Debug;
+    use std::collections::HashSet;
+        
+    #[derive(Clone, Debug)]
+    pub struct Set<T: Eq + Hash>(HashSet<T>);
 
-impl<T: Eq + Hash + Debug> Set<T> {
-    pub fn member(item: T, list: Self) -> bool {
+    pub fn member<T: Eq + Hash + Debug>(item: T, list: Set<T>) -> Set<T> {
         list.0.contains(&item)
     }
 
-    pub fn fromList(list: Vec<T>) -> Self {
+    pub fn fromList<T: Eq + Hash + Debug>(list: Vec<T>) -> Set<T> {
         // TODO
         Set(HashSet::new())
     }
 
-    pub fn insert(item: T, mut list: Self) -> Self {
+    pub fn insert<T: Eq + Hash + Debug>(item: T, mut list: Set<T>) -> Set<T> {
         list.0.insert(item);
         list
     }
 
-    pub fn delete(item: T, mut list: Self) -> Self {
+    pub fn delete<T: Eq + Hash + Debug>(item: T, mut list: Set<T>) -> Set<T> {
         list.0.remove(&item);
         list
+    }
+
+    pub fn empty<T: Eq + Hash + Debug>() -> Set<T> {
+        Set(HashSet::new())
+    }
+
+    pub fn difference() -> () {
+
+    }
+
+    pub fn notMember() -> () {
+        
     }
 }
 
@@ -925,6 +936,14 @@ pub fn __op_rshift(left: isize, right: isize) {
 
 pub mod Map {
     use std::collections::HashMap;
+
+    pub fn singleton() -> () {
+
+    }
+
+    pub fn member() -> () {
+
+    }
 
     pub fn lookup<A, B: Clone>(value: A, inside: HashMap<A, B>) -> Option<B> {
         inside.get(value).clone()
@@ -988,6 +1007,10 @@ pub mod IntMap {
 
     }
 
+    pub fn difference() -> () {
+
+    }
+
 
     pub fn intersectionWith() -> () {
 
@@ -1021,6 +1044,38 @@ pub mod IntMap {
 
     }
 
+    pub fn map() -> () {
+
+    }
+    
+    pub fn union() -> () {
+
+    }
+
+    pub fn unionsWith() -> () {
+
+    }
+
+    pub fn singleton() -> () {
+
+    }
+
+    pub fn toList() -> () {
+
+    }
+
+    pub fn updateLookupWithKey() -> () {
+
+    }
+
+    pub fn minViewWithKey() -> () {
+
+    }
+
+    pub fn keys() -> () {
+
+    }
+
     pub type IntMap<B> = HashMap<isize, B>;
 }
 
@@ -1051,5 +1106,39 @@ pub mod IntSet {
         false
     }
 
+    pub fn singleton() -> () {
+
+    }
+
+    pub fn fromList() -> () {
+
+    }
+
+    pub fn intersection() -> () {
+
+    }
+
+    pub fn union() -> () {
+
+    }
+
+    pub fn toList() -> () {
+
+    }
+
     pub type IntSet = HashSet<isize>;
+}
+
+
+// Text
+// https://hackage.haskell.org/package/pretty-1.1.3.5/docs/Text-PrettyPrint-HughesPJ.html#t:Doc
+
+pub struct Doc {
+    contents: String,
+}
+
+pub fn text(input: String) -> Doc {
+    Doc {
+        contents: input
+    }
 }

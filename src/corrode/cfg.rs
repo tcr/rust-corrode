@@ -37,7 +37,7 @@ pub struct DepthFirst;
 pub struct CFG<k, s, c>(Label, IntMap::IntMap<BasicBlock<s, c>>);
 
 
-pub fn prettyCFG(fmtS: fn(s) -> Doc, fmtC: fn(c) -> Doc, CFG(entry, blocks): CFG<k, s, c>) -> Doc {
+pub fn prettyCFG<k, s, c>(fmtS: fn(s) -> Doc, fmtC: fn(c) -> Doc, CFG(entry, blocks): CFG<k, s, c>) -> Doc {
 
     let blocks_q = /*do*/ {
             let (label, BasicBlock(stmts, term)) = IntMap::toList(blocks);
@@ -64,9 +64,10 @@ pub fn prettyCFG(fmtS: fn(s) -> Doc, fmtC: fn(c) -> Doc, CFG(entry, blocks): CFG
     vcat(__op_concat((__op_ne(text("start @".to_string()), text((show(entry))))), blocks_q))
 }
 
-pub type BuildCFGT<m, s, c> = StateT<BuildState<s, c>, m>;
+pub type BuildCFGT<m, s, c, k> = StateT<BuildState<s, c>, m, k>;
 
-pub fn mapBuildCFGT<b>() -> BuildCFGT<n, s, c, b> {
+pub fn mapBuildCFGT<n, s, c, a, b>(input: BuildCFGT<n, s, c, a>) -> BuildCFGT<n, s, c, b> {
+    // TODO
     mapStateT
 }
 
@@ -74,8 +75,8 @@ pub struct BuildState<s, c>{
     buildLabel: Label,
     buildBlocks: IntMap::IntMap<BasicBlock<s, c>>
 }
-fn buildLabel(a: BuildState) -> Label { a.buildLabel }
-fn buildBlocks(a: BuildState) -> IntMap::IntMap<BasicBlock<s, c>> { a.buildBlocks }
+fn buildLabel<s, c>(a: BuildState<s, c>) -> Label { a.buildLabel }
+fn buildBlocks<s, c>(a: BuildState<s, c>) -> IntMap::IntMap<BasicBlock<s, c>> { a.buildBlocks }
 
 pub fn newLabel() -> BuildCFGT<m, s, c, Label> {
     /*do*/ {
@@ -161,12 +162,8 @@ pub fn removeEmptyBlocks<k, s, c>(CFG(start, blocks): CFG<k, f<s>, c>) -> CFG<Un
 
 #[derive(Debug)]
 pub enum StructureLabel<s, c> {
-    GoTo{
-        structureLabel: Label
-    },
-    ExitTo{
-        structureLabel: Label
-    },
+    GoTo(Label), // structureLabel
+    ExitTo(label), // structureLabel
     Nested(Vec<Structure<s, c>>)
 }
 pub use self::StructureLabel::*;
@@ -184,12 +181,18 @@ pub enum Structure_q<s, c, a> {
 pub use self::Structure_q::*;
 
 #[derive(Debug)]
-pub struct Structure<s, c>{
-    structureEntries: IntSet::IntSet,
-    structureBody: Structure_q<s, c, Vec<Structure<s, c>>>
+pub struct Structure<s, c>(IntSet::IntSet, Structure_q<s, c, Vec<Structure<s, c>>>);
+fn structureEntries<s, c>(a: Structure<s, c>) -> IntSet::IntSet { a.0 }
+fn structureBody<s, c>(a: Structure<s, c>) -> Structure_q<s, c, Vec<Structure<s, c>>> { a.1 }
+
+impl<s, c> Structure<s, c> {
+    impl new(_0: IntSet::IntSet, _1: Structure_q<s, c, Vec<Structure<s, c>>>) -> self {
+        Structure {
+            structureEntries: _0,
+            structureBody: _1,
+        }
+    }
 }
-fn structureEntries(a: Structure) -> IntSet::IntSet { a.structureEntries }
-fn structureBody<s, c>(a: Structure) -> Structure_q<s, c, Vec<Structure<s, c>>> { a.structureBody }
 
 pub fn prettyStructure() -> Doc {
 
@@ -217,7 +220,7 @@ pub fn prettyStructure() -> Doc {
 }
 
 pub fn relooperRoot<k, c, s>(CFG(entry, blocks): CFG<k, s, c>) -> Vec<Structure<s, c>> {
-    relooper((IntSet::singleton(entry)), IntMap::map((|BasicBlock(s, term)| { (s, fmap(GoTo, term)) }), blocks))
+    relooper((IntSet::singleton(entry)), IntMap::map((|BasicBlock(s, term)| { (s, __fmap!(|x| GoTo(x), term)) }), blocks))
 }
 
 pub fn relooper<c, s>(entries: IntSet::IntSet, blocks: IntMap::IntMap<StructureBlock<s, c>>) -> Vec<Structure<s, c>> {
@@ -256,7 +259,7 @@ pub fn relooper<c, s>(entries: IntSet::IntSet, blocks: IntMap::IntMap<StructureB
                 } else {
                     Structure {
                         structureEntries: entries,
-                        structureBody: Multiple((IntMap::fromSet((__TODO_const(vec![])), absent)), (relooper(present, blocks)))
+                        structureBody: Multiple((IntMap::fromSet(box |_| { vec![] }, absent)), (relooper(present, blocks)))
                     }
                 }, vec![])
             }
@@ -269,7 +272,7 @@ pub fn relooper<c, s>(entries: IntSet::IntSet, blocks: IntMap::IntMap<StructureB
 
                 let followEntries = outEdges(bodyBlocks);
 
-                let blocks_q = IntMap::map((|(s, term)| { (s, fmap(markEdge, term)) }), bodyBlocks);
+                let blocks_q = IntMap::map((|(s, term)| { (s, __fmap!(markEdge, term)) }), bodyBlocks);
 
                 pub fn markEdge(_0: Label) -> Label {
                     match (_0) {
@@ -300,7 +303,7 @@ pub fn restrictKeys<a>(m: IntMap::IntMap<a>, s: IntSet::IntSet) -> IntMap::IntMa
     IntMap::intersection(m, IntMap::fromSet(|_| { () }, s))
 }
 
-pub fn outEdges(blocks: IntMap::IntMap<StructureBlock<s, c>>) -> IntSet::IntSet {
+pub fn outEdges<s, c>(blocks: IntMap::IntMap<StructureBlock<s, c>>) -> IntSet::IntSet {
     IntSet::difference(IntSet::unions((__map!(successors, IntMap::elems(blocks)))), IntMap::keysSet(blocks))
 }
 
@@ -349,7 +352,7 @@ pub fn simplifyStructure<s, c>() -> Vec<Structure<s, c>> {
                     }
                 };
 
-                __op_concat(Structure(entries, (Simple(s, (fmap(rewrite, term))))), rest)
+                __op_concat(Structure::new(entries, (Simple(s, (__fmap!(rewrite, term))))), rest)
             },
             (block, rest) => {
                 __op_concat(block, rest)
@@ -357,7 +360,7 @@ pub fn simplifyStructure<s, c>() -> Vec<Structure<s, c>> {
         }
     };
 
-    foldr(go, vec![], __map!(descend))
+    __foldr!(go, vec![], __map!(descend))
 }
 
 pub fn depthFirstOrder<k, s, c>(CFG(start, blocks): CFG<k, s, c>) -> CFG<DepthFirst, s, c> {
@@ -413,7 +416,7 @@ pub fn structureCFG<c, s>(
     let root = simplifyStructure((relooperRoot(cfg)));
 
     let foo = |exits, next_q, x| {
-        snd(foldr(go, (next_q, mempty)))
+        snd(__foldr!(go, (next_q, mempty), x))
 
 /*
 TODO
