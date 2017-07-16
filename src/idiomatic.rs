@@ -51,7 +51,7 @@ pub fn tailBlock(_0: Rust::Block) -> Rust::Block {
             Rust::Block(b, e)
         },
         b => {
-            Rust::Block(b, e)
+            b
         },
     }
 }

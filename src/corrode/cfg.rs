@@ -186,7 +186,7 @@ fn structureEntries<s, c>(a: Structure<s, c>) -> IntSet::IntSet { a.0 }
 fn structureBody<s, c>(a: Structure<s, c>) -> Structure_q<s, c, Vec<Structure<s, c>>> { a.1 }
 
 impl<s, c> Structure<s, c> {
-    impl new(_0: IntSet::IntSet, _1: Structure_q<s, c, Vec<Structure<s, c>>>) -> self {
+    pub fn new(_0: IntSet::IntSet, _1: Structure_q<s, c, Vec<Structure<s, c>>>) -> self {
         Structure {
             structureEntries: _0,
             structureBody: _1,

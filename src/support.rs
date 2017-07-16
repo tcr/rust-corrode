@@ -841,6 +841,10 @@ pub fn maybe<A, B, F: Fn(A) -> B>(default_: B, method: F, maybe: Option<A>) -> B
     maybe.map(|x| method(x)).unwrap_or(default_)
 }
 
+pub fn fromMaybe<A>(left: A, right: Option<A>) -> A {
+    right.unwrap_or(left)
+}
+
 pub fn bracket<A, B, C>(a: A, b: B, c: C) -> C {
     // TODO these are all methods
     c
@@ -899,7 +903,11 @@ pub mod Set {
     }
 
     pub fn notMember() -> () {
-        
+
+    }
+
+    pub fn singleton() -> () {
+
     }
 }
 
@@ -989,7 +997,7 @@ pub mod IntMap {
     }
 
     pub fn delete<B>(key: isize, mut input: HashMap<isize, B>) -> HashMap<isize, B> {
-        input.remove(Akey;
+        input.remove(key);
         input
     }
 
@@ -1011,6 +1019,14 @@ pub mod IntMap {
 
     }
 
+    pub fn fromDistinctAscList() -> () {
+
+    }
+
+    pub fn size() -> () {
+
+    }
+
 
     pub fn intersectionWith() -> () {
 
@@ -1029,6 +1045,10 @@ pub mod IntMap {
     }
 
     pub fn elems() -> () {
+
+    }
+
+    pub fn mapMaybeWithKey() -> () {
 
     }
 

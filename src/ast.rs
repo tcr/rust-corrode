@@ -103,20 +103,20 @@ pub use self::FunctionAttribute::*;
 
 #[derive(Debug)]
 pub enum ItemKind {
-    Function(Vec<FunctionAttribute>, String, Vec<(Mutable, Var, Type)>, Type, Block),
-    Static(Mutable, Var, Type, Expr),
-    Struct(String, Vec<(String, Type)>),
+    Function(Vec<FunctionAttribute>, String, Vec<(Mutable, VarName, TypeName)>, TypeName, Block),
+    Static(Mutable, VarName, TypeName, Expr),
+    Struct(String, Vec<(String, TypeName)>),
     Extern(Vec<ExternItem>),
     Use(String),
     Enum(String, Vec<Enumerator>),
-    CloneImpl(Type)
+    CloneImpl(TypeName)
 }
 pub use self::ItemKind::*;
 
 #[derive(Debug)]
 pub enum ExternItem {
-    ExternFn(String, Vec<(Var, Type)>, bool, Type),
-    ExternStatic(Mutable, Var, Type)
+    ExternFn(String, Vec<(VarName, TypeName)>, bool, TypeName),
+    ExternStatic(Mutable, VarName, TypeName)
 }
 pub use self::ExternItem::*;
 
@@ -130,22 +130,22 @@ pub use self::Enumerator::*;
 #[derive(Debug)]
 pub enum Expr {
     Lit(Lit),
-    Var(Var),
+    Var(VarName),
     Path(Path),
     Index(Expr, Expr),
     ArrayExpr(Vec<Expr>),
     RepeatArray(Expr, Expr),
     StructExpr(String, Vec<(String, Expr)>, Option<Expr>),
     Call(Expr, Vec<Expr>),
-    MethodCall(Expr, Var, Vec<Expr>),
-    Lambda(Vec<Var>, Expr),
-    Member(Expr, Var),
+    MethodCall(Expr, VarName, Vec<Expr>),
+    Lambda(Vec<VarName>, Expr),
+    Member(Expr, VarName),
     BlockExpr(Block),
     UnsafeExpr(Block),
     IfThenElse(Expr, Block, Block),
     Loop(Option<Lifetime>, Block),
     While(Option<Lifetime>, Expr, Block),
-    For(Option<Lifetime>, Var, Expr, Block),
+    For(Option<Lifetime>, VarName, Expr, Block),
     Break(Option<Lifetime>),
     Continue(Option<Lifetime>),
     Return(Option<Expr>),
@@ -153,7 +153,7 @@ pub enum Expr {
     Deref(Expr),
     Not(Expr),
     Borrow(Mutable, Expr),
-    Cast(Expr, Type),
+    Cast(Expr, TypeName),
     Mul(Expr, Expr),
     Div(Expr, Expr),
     Mod(Expr, Expr),

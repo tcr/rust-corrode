@@ -66,11 +66,6 @@ pub fn parseCrateMap() -> Either<String, CrateMap> {
             },
             _ => {
                 Left(unwords(vec!["invalid crate map entry:"].extend(_0)))
-                /*do*/ {
-                    let item_q = parseItem(item);
-
-                    (__crate, __op_concat(item_q, items))
-                }
             },
         }
     };

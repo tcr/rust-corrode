@@ -29,7 +29,8 @@ use corrode::cfg::*;
 use corrode::crate_map::*;
 use parser_c::syntax::ops::*;
 use parser_c::data::ident::*;
-use parser_c::data::node::NodeInfo;
+use parser_c::data::node::*;
+use parser_c::data::position::*;
 use parser_c::syntax::constants::*;
 
 pub type EnvMonad<s, x> = ExceptT<String, RWST<FunctionContext, Output, EnvState<s>, ST<s>>, x>;
@@ -199,7 +200,7 @@ pub fn getSymbolIdent<s>(ident: Ident) -> EnvMonad<s, Option<Result>> {
 
         match lookup(ident, (symbolEnvironment(env))) {
             Some(symbol) => {
-                fmap(Some, symbol)
+                __fmap!(|x| Some(x), symbol)
             },
             None => {
                 match identToString(ident) {
@@ -252,25 +253,25 @@ pub fn addSymbolIdent<s>(ident: Ident, (__mut, ty): (Rust::Mutable, CType)) -> E
 
 pub fn addSymbolIdentAction<s>(ident: Ident, action: EnvMonad<s, Result>) -> EnvMonad<s, ()> {
     lift(/*do*/ {
-            modify(box |st| { st {
+            modify(box |st| { __assign!(st, {
                         symbolEnvironment: __op_concat((ident, action), symbolEnvironment(st))
-                    } })
+                    }) })
         })
 }
 
 pub fn addTypedefIdent<s>(ident: Ident, ty: EnvMonad<s, IntermediateType>) -> EnvMonad<s, ()> {
     lift(/*do*/ {
-            modify(box |st| { st {
+            modify(box |st| { __assign!(st, {
                         typedefEnvironment: __op_concat((ident, ty), typedefEnvironment(st))
-                    } })
+                    }) })
         })
 }
 
 pub fn addTagIdent<s>(ident: Ident, ty: EnvMonad<s, CType>) -> EnvMonad<s, ()> {
     lift(/*do*/ {
-            modify(box |st| { st {
+            modify(box |st| { __assign!(st, {
                         tagEnvironment: __op_concat((ident, ty), tagEnvironment(st))
-                    } })
+                    })  })
         })
 }
 
@@ -387,7 +388,7 @@ __op_concat(Rust::Item(vec![], Rust::Private, (Rust::Extern(externs_q))), items)
     }
 }
 
-pub type MakeBinding<s, a> = (Box<Fn(Rust::ItemKind) -> a>, Box<Fn(Rust::Mutable, Rust::Var, CType, NodeInfo, Option<CInit>) -> EnvMonad<s, a>>);
+pub type MakeBinding<s, a> = (Box<Fn(Rust::ItemKind) -> a>, Box<Fn(Rust::Mutable, Rust::VarName, CType, NodeInfo, Option<CInit>) -> EnvMonad<s, a>>);
 
 pub fn makeStaticBinding<s>() -> MakeBinding<s, Rust::Item> {
 
@@ -832,10 +833,10 @@ pub fn interpretFunction<s>(CFunctionDef(specs, declr, __OP__, CDeclarator(miden
 
                 if ((name == "_c_main".to_string())) { (wrapMain(declr, name, (__map!(snd, args)))) };
                 let setRetTy = |flow| {
-                    flow {
+                    __assign!(flow, {
                         functionReturnType: Some(retTy),
                         functionName: Some(name)
-                    }
+                    })
                 };
 
                 let f_q = mapExceptT((local(setRetTy)), scope(/*do*/ {
@@ -872,7 +873,7 @@ None
             typeToResult(itype, (Rust::Path((Rust::PathSegments(vec![name])))))
         };
 
-        let deferred = fmap((fmap(funTy)), (derivedDeferredTypeOf(baseTy, declr, argtypes)));
+        let deferred = __fmap!(|x| __fmap!(funTy, x), (derivedDeferredTypeOf(baseTy, declr, argtypes)));
 
         let alreadyUsed = lift(gets((usedForwardRefs(globalState))));
 
@@ -1260,7 +1261,7 @@ headerLabel
                                 },
                                 Some(retTy) => {
                                     /*do*/ {
-                                        let expr_q = mapM((fmap((castTo(retTy)), interpretExpr(true))), expr);
+                                        let expr_q = mapM((__fmap!((castTo(retTy)), interpretExpr(true))), expr);
 
                                         __return((exprToStatements((Rust::Return(expr_q))), Unreachable))
                                     }
@@ -1530,14 +1531,14 @@ pub fn interpretExpr<s>(_0: bool, _1: CExpr) -> EnvMonad<s, Result> {
 (exprs, None)
                     };
 
-                let effects_q = mapM((fmap(resultToStatements, interpretExpr(false))), effects);
+                let effects_q = mapM((__fmap!(resultToStatements, interpretExpr(false))), effects);
 
                 let mfinal_q = mapM((interpretExpr(true)), mfinal);
 
                 __return(Result {
                         resultType: maybe(IsVoid, resultType, mfinal_q),
                         resultMutable: maybe(Rust::Immutable, resultMutable, mfinal_q),
-                        result: Rust::BlockExpr((Rust::Block((concat(effects_q)), (fmap(result, mfinal_q)))))
+                        result: Rust::BlockExpr((Rust::Block((concat(effects_q)), (__fmap!(result, mfinal_q)))))
                     })
             }
         },
@@ -1552,7 +1553,7 @@ pub fn interpretExpr<s>(_0: bool, _1: CExpr) -> EnvMonad<s, Result> {
         },
         (demand, expr, __OP__, CCond(c, Some(t), f, _)) => {
             /*do*/ {
-                let c_q = fmap(toBool, (interpretExpr(true, c)));
+                let c_q = __fmap!(toBool, (interpretExpr(true, c)));
 
                 let t_q = interpretExpr(demand, t);
 
@@ -1594,6 +1595,32 @@ castTo(ty)
             }
         },
         (demand, node, __OP__, CUnary(op, expr, _)) => {
+            let incdec = |returnOld, assignop| {
+                /*do*/ {
+                    let expr_q = interpretExpr(true, expr);
+
+                    compound(node, returnOld, demand, assignop, expr_q, Result {
+                            resultType: IsInt(Signed, (BitWidth(32))),
+                            resultMutable: Rust::Immutable,
+                            result: 1
+                        })
+                }
+            };
+
+            let simple = |f| {
+                /*do*/ {
+                    let expr_q = interpretExpr(true, expr);
+
+                    let ty_q = intPromote((resultType(expr_q)));
+
+                    __return(Result {
+                            resultType: ty_q,
+                            resultMutable: Rust::Immutable,
+                            result: f((castTo(ty_q, expr_q)))
+                        })
+                }
+            };
+            
             match op {
                 CPreIncOp => {
                     incdec(false, CAddAssOp)
@@ -2000,7 +2027,7 @@ pub fn binop<s>(expr: CExpr, op: CBinaryOp, lhs: Result, rhs: Result) -> EnvMona
         }
     };
 
-    fmap(wrapping, match op {
+    __fmap!(wrapping, match op {
             CMulOp => {
                 promote(expr, Rust::Mul, lhs, rhs)
             },
@@ -2262,6 +2289,35 @@ pub fn interpretConstExpr<s>(_0: CExpr) -> EnvMonad<s, isize> {
     }
 }
 
+pub fn castTo(target: CType, source: Result) -> Rust::Expr {
+    match (target, source) {
+        (target, source) if (resultType(source) == target) => { result(source) }
+        (target, Result { ..
+
+                    }) => {
+            castTo(target, Result {
+                    resultType: IsPtr(__mut, el),
+                    resultMutable: Rust::Immutable,
+                    result: Rust::MethodCall(source, (Rust::VarName(method)), vec![])
+                })
+        },
+        (IsBool, source) => {
+            toBool(source)
+        },
+        (IsInt(..), Result { .. }) => {
+            Rust::Lit((Rust::LitInt(n, repr, (toRustType(target)))))
+        },
+        (IsInt(Signed, w), Result { ..
+
+                    }) => {
+            Rust::Neg((Rust::Lit((Rust::LitInt(n, repr, (toRustType((IsInt(Signed, w)))))))))
+        },
+        (target, source) => {
+            Rust::Cast((result(source)), (toRustType(target)))
+        },
+    }
+}
+
 pub fn toBool(_0: Result) -> Rust::Expr {
     match (_0) {
         Result {
@@ -2295,13 +2351,13 @@ pub fn toBool(_0: Result) -> Rust::Expr {
 pub fn toNotBool(_0: Result) -> Rust::Expr {
     match (_0) {
         Result {
-            result: Rust.Lit(Rust.LitInt(0, _, _)),
+            result: Rust::Lit(Rust::LitInt(0, _, _)),
             ..
         } => {
             Rust::Lit((Rust::LitBool(true)))
         },
         Result {
-            result: Rust.Lit(Rust.LitInt(1, _, _)),
+            result: Rust::Lit(Rust::LitInt(1, _, _)),
             ..
         } => {
             Rust::Lit((Rust::LitBool(false)))
@@ -2678,7 +2734,7 @@ pub fn baseTypeOf<s>(specs: Vec<CDeclSpec>) -> EnvMonad<s, (Option<CStorageSpec>
                 /*do*/ {
                     let deferred = singleSpec(other);
 
-                    __return((fmap((simple(__mut)), deferred)))
+                    __return((__fmap!((simple(__mut)), deferred)))
                 }
             },
         }
@@ -2709,7 +2765,7 @@ pub fn baseTypeOf<s>(specs: Vec<CDeclSpec>) -> EnvMonad<s, (Option<CStorageSpec>
             },
             [CSUType(CStructureUnion(CStructTag, mident, Some(declarations), _, _), _)] => {
                 /*do*/ {
-                    let deferredFields = fmap(concat, forM(declarations, box |declaration| { match declaration {
+                    let deferredFields = __fmap!(concat, forM(declarations, box |declaration| { match declaration {
                                         CStaticAssert {
 
                                         } => {
