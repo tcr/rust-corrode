@@ -29,8 +29,8 @@ pub enum Lit {
     LitByteStr(String),
     LitByteChar(char),
     LitBool(bool),
-    LitInt(isize, LitIntRepr, Type),
-    LitFloat(String, Type)
+    LitInt(isize, LitIntRepr, TypeName),
+    LitFloat(String, TypeName)
 }
 pub use self::Lit::*;
 
