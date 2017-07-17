@@ -286,6 +286,10 @@ pub fn isJust<T>(input: Option<T>) -> bool {
     input.is_some()
 }
 
+pub fn fromJust<T>(input: Option<T>) -> T {
+    input.unwrap()
+}
+
 pub fn null<T>(input: Vec<T>) -> bool {
     input.is_empty()
 }
@@ -709,6 +713,28 @@ macro_rules! __map {
 }
 
 #[macro_export]
+macro_rules! __mapM {
+    ($fn: expr) => {
+        //TODO reject this
+        panic!("need two arguments for map")
+    };
+    ($fn: expr, $target: expr) => {
+        $target.into_iter()
+            .map($fn)
+            .collect::<Vec<_>>()
+    }
+}
+
+#[macro_export]
+macro_rules! __forM {
+    ($target: expr, $fn: expr) => {
+        $target.into_iter()
+            .map($fn)
+            .collect::<Vec<_>>()
+    }
+}
+
+#[macro_export]
 macro_rules! __fmap {
     ($fn: expr, $target: expr) => {
         $target.into_iter()
@@ -1096,6 +1122,22 @@ pub mod IntMap {
 
     }
 
+    pub fn splitLookup() -> () {
+
+    }
+
+    pub fn filterWithKey() -> () {
+
+    }
+
+    pub fn mapMaybe() -> () {
+
+    }
+
+    pub fn mapEither() -> () {
+        
+    }
+
     pub type IntMap<B> = HashMap<isize, B>;
 }
 
@@ -1143,6 +1185,14 @@ pub mod IntSet {
     }
 
     pub fn toList() -> () {
+
+    }
+
+    pub fn findMin() -> () {
+
+    }
+
+    pub fn size() -> () {
 
     }
 

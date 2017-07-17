@@ -13,6 +13,8 @@ use corollary_support::*;
 // use Data::Traversable;
 // use Text::PrettyPrint::HughesPJClass;
 
+pub use ast as Rust;
+
 pub struct BasicBlock<s, c>(s, Terminator<c>);
 
 
@@ -78,7 +80,7 @@ pub struct BuildState<s, c>{
 fn buildLabel<s, c>(a: BuildState<s, c>) -> Label { a.buildLabel }
 fn buildBlocks<s, c>(a: BuildState<s, c>) -> IntMap::IntMap<BasicBlock<s, c>> { a.buildBlocks }
 
-pub fn newLabel() -> BuildCFGT<m, s, c, Label> {
+pub fn newLabel<m, s, c>() -> BuildCFGT<m, s, c, Label> {
     /*do*/ {
         let old = get;
 
@@ -147,6 +149,15 @@ pub fn removeEmptyBlocks<k, s, c>(CFG(start, blocks): CFG<k, f<s>, c>) -> CFG<Un
         }
     };
 
+    fn isBlockEmpty<s, l>(input: BasicBlock<s, l>) -> Option<l> {
+        match input {
+            BasicBlock(s, Branch(to)) if null(s) => {
+                Some(to)
+            }
+            _ => None
+        }
+    }
+
     let rewrites = snd(execState(go, (IntMap::mapMaybe(isBlockEmpty, blocks), IntMap::empty)));
 
     let rewrite = |to| {
@@ -168,6 +179,14 @@ pub enum StructureLabel<s, c> {
 }
 pub use self::StructureLabel::*;
 
+pub fn structureLabel<s, c>(input: StructureLabel<s, c>) -> Label {
+    match input {
+        GoTo(l) => l,
+        ExitTo(l) => l,
+        _ => panic!("Does not have structureLabel"),
+    }
+}
+
 pub type StructureTerminator<s, c> = Terminator_q<c, StructureLabel<s, c>>;
 
 pub type StructureBlock<s, c> = (s, StructureTerminator<s, c>);
@@ -186,7 +205,7 @@ fn structureEntries<s, c>(a: Structure<s, c>) -> IntSet::IntSet { a.0 }
 fn structureBody<s, c>(a: Structure<s, c>) -> Structure_q<s, c, Vec<Structure<s, c>>> { a.1 }
 
 impl<s, c> Structure<s, c> {
-    pub fn new(_0: IntSet::IntSet, _1: Structure_q<s, c, Vec<Structure<s, c>>>) -> self {
+    pub fn new(_0: IntSet::IntSet, _1: Structure_q<s, c, Vec<Structure<s, c>>>) -> Self {
         Structure {
             structureEntries: _0,
             structureBody: _1,
@@ -248,7 +267,7 @@ pub fn relooper<c, s>(entries: IntSet::IntSet, blocks: IntMap::IntMap<StructureB
                     (None, _) => {
                         __op_concat(Structure {
                             structureEntries: entries,
-                            structureBody: Simple(mempty, (Branch((GoTo(entry)))))
+                            structureBody: Simple(vec![], (Branch((GoTo(entry)))))
                         }, vec![])
                     },
                 }
@@ -312,11 +331,22 @@ pub fn partitionMembers<a, b>(a: IntSet::IntSet, b: IntSet::IntSet) -> (IntSet::
 }
 
 pub fn successors<s, c>((_, term): StructureBlock<s, c>) -> IntSet::IntSet {
-    IntSet::fromList(/* Expr::Generator */ Generator)
+    IntSet::fromList(
+        toList(term).into_iter().map(|x| {
+            match x {
+                GoTo(target) => target,
+                _ => panic!("Irrefutable pattern")
+            }
+        }).collect()
+    )
 }
 
 pub fn flipEdges(edges: IntMap::IntMap<IntSet::IntSet>) -> IntMap::IntMap<IntSet::IntSet> {
-    IntMap::unionsWith(IntSet::union, /* Expr::Generator */ Generator)
+    IntMap::unionsWith(IntSet::union, 
+        IntMap::toList(edges).into_iter().map(|(from, to)| {
+            IntMap::fromSet(|_| IntSet::singleton(from), to)
+        }).collect()
+    )
 }
 
 pub fn simplifyStructure<s, c>() -> Vec<Structure<s, c>> {
@@ -341,10 +371,10 @@ pub fn simplifyStructure<s, c>() -> Vec<Structure<s, c>> {
         match (_0, _1) {
             (Structure(entries, Simple(s, term)), mut rest) if rest.len() == 2 => {
                 let Structure(_, Multiple(handlers, unhandled)) = rest.remove(0);
-                fn rewrite(_0: Label) {
+                let rewrite = move |_0: Label| {
                     match (_0) {
                         GoTo(to) => {
-                            Nested(__op_concat(Structure((IntSet::singleton(to)), (Simple(mempty, (Branch((GoTo(to))))))), IntMap::findWithDefault(unhandled, to, handlers)))
+                            Nested(__op_concat(Structure((IntSet::singleton(to)), (Simple(vec![], (Branch((GoTo(to))))))), IntMap::findWithDefault(unhandled, to, handlers)))
                         },
                         _ => {
                             __error!((__op_addadd("simplifyStructure: Simple/Multiple invariants violated in ".to_string(), show(entries))))
@@ -415,49 +445,113 @@ pub fn structureCFG<c, s>(
 
     let root = simplifyStructure((relooperRoot(cfg)));
 
-    let foo = |exits, next_q, x| {
-        snd(__foldr!(go, (next_q, mempty), x))
+    // TODO these types are not correct
+    fn foo<s, c, m>(
+        mkBreak: fn(Option<Label>) -> s, 
+        mkContinue: fn(Option<Label>) -> s, 
+        mkLoop: fn(Label, s) -> s, 
+        mkIf: fn(c, s, s) -> s, 
+        mkGoto: fn(Label) -> s, 
+        mkMatch: fn(Vec<(Label, s)>, s) -> s,
+        exits: Vec<Label>, next_q: Vec<Rust::Stmt>, x: Structure<s, c>) {
+        let go = |structure, (next, rest)| {
+            (structureEntries(structure), mappend(go_q(structure, next), rest))
+        };
 
-/*
-TODO
-where
-        go structure (next, rest) = (structureEntries structure, go' structure next `mappend` rest)
+        let go_q = |_0, _1| {
+            match (_0, _1) {
+                (Structure(entries, Simple(mut body, term)), next) => {
+                    fn insertGoto<T>(_0: Label, _1: (IntSet::IntSet, Vec<Rust::Stmt>)) -> Vec<Rust::Stmt> {
+                        match (_0, _1) {
+                            (_, (target, s)) if IntSet::size(target) == 1 => {
+                                s
+                            },
+                            (to, (_, s)) => {
+                                let left = mkGoto(to);
+                                left.extend(s);
+                                left
+                            },
+                        }
+                    };
 
-        go' (Structure entries (Simple body term)) next = body `mappend` case term of
-                Unreachable -> mempty
-                Branch to -> branch to
-                CondBranch c t f -> mkIf c (branch t) (branch f)
-            where
-            branch (Nested nested) = foo exits next nested
-            branch to | structureLabel to `IntSet.member` next =
-                insertGoto (structureLabel to) (next, mempty)
-            branch (ExitTo to) | isJust target = insertGoto to (fromJust target)
-                where
-                inScope immediate (label, local) = do
-                    (follow, mkStmt) <- IntMap.lookup to local
-                    return (follow, mkStmt (immediate label))
-                target = msum (zipWith inScope (const Nothing : repeat Just) exits)
-            branch to = error ("structureCFG: label " ++ show (structureLabel to) ++ " is not a valid exit from " ++ show entries)
+                    let branch = |_0| {
+                        match (_0) {
+                            Nested(nested) => {
+                                foo(
+                                    mkBreak, mkContinue, mkLoop, mkIf, mkGoto, mkMatch,
+                                    exits, next, nested)
+                            },
+                            to if structureLabel(IntSet::member(to, next)) => {
+                                insertGoto(structureLabel(to), (next, vec![]))
+                            },
+                            ExitTo(to) => {
+                                let inScope = |immediate, (label, local)| {
+                                    /*do*/ {
+                                        let (follow, mkStmt) = IntMap::lookup(to, local);
 
-            insertGoto _ (target, s) | IntSet.size target == 1 = s
-            insertGoto to (_, s) = mkGoto to `mappend` s
+                                        __return((follow, mkStmt((immediate(label)))))
+                                    }
+                                };
 
-        go' (Structure _ (Multiple handlers unhandled)) next =
-            mkMatch [ (label, foo exits next body) | (label, body) <- IntMap.toList handlers ] (foo exits next unhandled)
+                                let target = msum((zipWith(inScope, (__op_concat(|_| None, repeat(Some))), exits)));
 
-        go' (Structure entries (Loop body)) next = mkLoop label (foo exits' entries body)
-            where
-            label = IntSet.findMin entries
-            exits' =
-                ( label
-                , IntMap.union
-                    (IntMap.fromSet (const (entries, mkContinue)) entries)
-                    (IntMap.fromSet (const (next, mkBreak)) next)
-                ) : exits
-                */
+                                if isJust(target) {
+                                    insertGoto(to, fromJust(target))
+                                } else {
+                                    __error!((__op_addadd("structureCFG: label ".to_string(), __op_addadd(show((structureLabel(to))), __op_addadd(" is not a valid exit from ".to_string(), show(entries))))))
+                                }
+                            },
+                        }
+                    };
+
+                    body.extend(match term {
+                        Unreachable => {
+                            vec![]
+                        },
+                        Branch(to) => {
+                            branch(to)
+                        },
+                        CondBranch(c, t, f) => {
+                            mkIf(c, (branch(t)), (branch(f)))
+                        },
+                    })
+                },
+                (Structure(_, Multiple(handlers, unhandled)), next) => {
+                    mkMatch(
+                        IntMap::toList(handlers).into_iter()
+                            .map(|x| {
+                                match x {
+                                    (label, body) => (label, foo(
+                                        mkBreak, mkContinue, mkLoop, mkIf, mkGoto, mkMatch,
+                                        exits, next, body)),
+                                    _ => panic!("Irrefutable pattern"),
+                                }
+                            })
+                            .collect(),
+                        (foo(
+                        mkBreak, mkContinue, mkLoop, mkIf, mkGoto, mkMatch,
+                        exits, next, unhandled))
+                    )
+                },
+                (Structure(entries, Loop(body)), next) => {
+                    let label = IntSet::findMin(entries);
+
+                    let exits_q = __op_concat((label, IntMap::union((IntMap::fromSet(|_| (entries, mkContinue), entries)), (IntMap::fromSet(|_| (next, mkBreak), next)))), exits);
+
+                    mkLoop(label, (foo(
+                        mkBreak, mkContinue, mkLoop, mkIf, mkGoto, mkMatch,
+                        exits_q, entries, body)))
+                },
+            }
+        };
+
+        snd(__foldr!(go, (next_q, vec![]), x))
+
     };
 
-    (hasMultiple(root), foo(vec![], mempty, root))
+    (hasMultiple(root), foo(
+        mkBreak, mkContinue, mkLoop, mkIf, mkGoto, mkMatch,
+        vec![], vec![], root))
 }
 
 pub fn hasMultiple<s, c>(list: Vec<Structure<s, c>>) -> bool {
@@ -483,3 +577,6 @@ pub fn hasMultiple<s, c>(list: Vec<Structure<s, c>>) -> bool {
 
 
 
+pub fn lift() -> () {
+    //tODO
+}
