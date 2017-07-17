@@ -1075,7 +1075,7 @@ pub fn interpretStatement<s>(_0: CStat, _1: CSourceBuildCFGT<s, (Vec<Rust::Stmt>
 
                 let (_, SwitchCases(cases)) = getSwitchCases(expr_q, setBreak(after, interpretStatement(body, (__return((vec![], Branch(after)))))));
 
-                fn isDefault(value: Option<T>) -> Either<T, ()> {
+                fn isDefault<T>(value: Option<T>) -> Either<T, ()> {
                     match value {
                         Some(condition) => Left(condition),
                         None => Right(()),
@@ -2069,9 +2069,9 @@ pub fn binop<s>(expr: CExpr, op: CBinaryOp, lhs: Result, rhs: Result) -> EnvMona
         /*do*/ {
             let res = promotePtr(expr, op_q, lhs, rhs);
 
-            __return(res {
+            __return(__assign!(res, {
                     resultType: IsBool
-                })
+                }))
         }
     };
 
@@ -2955,7 +2955,7 @@ pub fn baseTypeOf<s>(specs: Vec<CDeclSpec>) -> EnvMonad<s, (Option<CStorageSpec>
 
                                                 match Map::lookup((Enum, identToString(ident)), rewrites) {
                                                     Some(renamed) => {
-                                                        __return((false, __concatMap(("::".to_string()(__op_addadd)), renamed)))
+                                                        __return((false, __concatMap!(("::".to_string()(__op_addadd)), renamed)))
                                                     },
                                                     None => {
                                                         __return((true, identToString(ident)))
@@ -3002,7 +3002,7 @@ pub fn baseTypeOf<s>(specs: Vec<CDeclSpec>) -> EnvMonad<s, (Option<CStorageSpec>
                                 __return((IsEnum(name)))
                             });
 
-                    __forM!_(items, box |(ident, _mexpr)| { addSymbolIdentAction });
+                    __forM!(items, box |(ident, _mexpr)| { addSymbolIdentAction });
                     match mident {
                         Some(ident) => {
                             addTagIdent(ident, deferred)

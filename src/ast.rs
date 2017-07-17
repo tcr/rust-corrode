@@ -58,7 +58,7 @@ pub use self::Mutable::*;
 #[derive(Debug)]
 pub enum Stmt {
     Stmt(Expr),
-    Let(Mutable, Var, Option<Type>, Option<Expr>),
+    Let(Mutable, VarName, Option<TypeName>, Option<Expr>),
     StmtItem(Vec<Attribute>, ItemKind)
 }
 pub use self::Stmt::*;
@@ -131,7 +131,7 @@ pub use self::Enumerator::*;
 pub enum Expr {
     Lit(Lit),
     Var(VarName),
-    Path(Path),
+    Path(PathName),
     Index(Expr, Expr),
     ArrayExpr(Vec<Expr>),
     RepeatArray(Expr, Expr),

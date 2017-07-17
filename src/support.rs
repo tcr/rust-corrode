@@ -1135,7 +1135,23 @@ pub mod IntMap {
     }
 
     pub fn mapEither() -> () {
-        
+
+    }
+
+    pub fn deleteFindMax() -> () {
+
+    }
+
+    pub fn mapWithKey() -> () {
+
+    }
+
+    pub fn unions() -> () {
+
+    }
+
+    pub fn filter() -> () {
+
     }
 
     pub type IntMap<B> = HashMap<isize, B>;
@@ -1211,4 +1227,167 @@ pub fn text(input: String) -> Doc {
     Doc {
         contents: input
     }
+}
+
+
+
+
+// TODO delete
+
+pub fn lookup() -> () {
+
+}
+
+pub fn sep() -> () {
+
+}
+
+pub fn pPrint() -> () {
+
+}
+
+pub fn nest() -> () {
+
+}
+
+pub fn punctuate() -> () {
+
+}
+
+pub fn pretty() -> () {
+
+}
+
+pub fn render() -> () {
+
+}
+
+pub fn __op_line_concat() -> () {
+
+}
+
+pub fn __op_doc_concat() -> () {
+    
+}
+
+pub fn hsep() -> () {
+    // TODO delete
+}
+
+pub fn step() -> () {
+
+}
+
+pub fn prettyGroup() -> () {
+    // TODO delete
+}
+
+pub fn put() -> () {
+
+}
+
+pub fn modify() -> () {
+
+}
+
+pub fn get() -> () {
+
+}
+
+pub fn lift() -> () {
+    // TODO delete
+}
+
+pub fn tell() -> () {
+    // TODO delete
+}
+
+pub fn asks() -> () {
+    // TODO delete
+}
+
+pub fn gets() -> () {
+    // TODO delete
+}
+
+pub fn mappend() -> () {
+    // TODO delete
+}
+
+pub fn vcat() -> () {
+    // TODO delete
+}
+
+pub fn concat() -> () {
+
+}
+
+pub fn fail() -> () {
+    
+}
+
+pub fn subscript() -> () {
+    
+}
+
+pub fn writeSTRef() -> () {
+    
+}
+
+pub fn readSTRef() -> () {
+    
+}
+
+pub fn newSTRef() -> () {
+    
+}
+
+pub fn evalRWST() -> () {
+
+}
+
+pub fn mapRWST() -> () {
+    
+}
+
+pub struct RWST { }
+
+pub fn sequence() -> () {
+
+}
+
+pub fn zeroInitialize() -> () {
+
+}
+
+pub fn foldl() -> () {
+
+}
+
+pub fn unfoldl() -> () {
+
+}
+
+pub fn unfoldr() -> () {
+    
+}
+
+pub fn foldM() -> () {
+
+}
+
+pub fn forM() -> () {
+
+}
+
+pub fn __pure() -> () {
+
+}
+
+pub fn __op_dollar_arrow() -> () {
+
+}
+
+pub fn catMaybes() -> () {
+
 }
