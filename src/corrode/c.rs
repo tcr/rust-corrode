@@ -307,7 +307,7 @@ pub fn addExternIdent<s>(ident: Ident, deferred: EnvMonad<s, IntermediateType>, 
     }
 }
 
-pub fn noTranslation<a, s, node: Prettty + Pos>(node: node, msg: String) -> EnvMonad<s, a> {
+pub fn noTranslation<a, s, node: Pretty + Pos>(node: node, msg: String) -> EnvMonad<s, a> {
     throwE(concat(vec![
                 show((posOf(node))),
                 ": ".to_string(),
@@ -918,11 +918,12 @@ pub fn wrapMain<s>(declr: CDeclarator<NodeInfo>, realName: String, argTypes: Vec
     };
 
     let wrapArgv = |_0| {
-        match (_0) {
+        match _0 {
             [] => {
                 __return((vec![], vec![]))
             },
-            [argcType(__OP__, IsInt(Signed, BitWidth(32))), [IsPtr(Rust::Mutable, IsPtr(Rust::Mutable, ty)), rest]] => {
+            [IsInt(Signed, BitWidth(32)), [IsPtr(Rust::Mutable, IsPtr(Rust::Mutable, ty)), rest]] => {
+                let argcType = _0[0];
                 /* Expr::Error */ Error
             },
             _ => {
@@ -931,12 +932,12 @@ pub fn wrapMain<s>(declr: CDeclarator<NodeInfo>, realName: String, argTypes: Vec
         }
     };
 
-    let wrapEnvp = |_0| {
-        match (_0) {
+    let wrapEnvp = |arg| {
+        match arg {
             [] => {
                 __return((vec![], vec![]))
             },
-            [arg(__OP__, IsPtr(Rust::Mutable, IsPtr(Rust::Mutable, ty)))] => {
+            [IsPtr(Rust::Mutable, IsPtr(Rust::Mutable, ty))] => {
                 /* Expr::Error */ Error
             },
             _ => {
@@ -2129,9 +2130,9 @@ pub fn binop<s>(expr: CExpr, op: CBinaryOp, lhs: Result, rhs: Result) -> EnvMona
                         }
                     },
                     (Some(ptr), _) => {
-                        __return(ptr {
+                        __return(__assign!(ptr, {
                                 result: Rust::MethodCall((result(ptr)), (Rust::VarName("offset".to_string())), vec![Rust::Neg((castTo((IsInt(Signed, WordWidth)), rhs)))])
-                            })
+                            }))
                     },
                     _ => {
                         promote(expr, Rust::Sub, lhs, rhs)
@@ -2390,17 +2391,19 @@ pub fn castTo(target: CType, source: Result) -> Rust::Expr {
 pub fn toBool(_0: Result) -> Rust::Expr {
     match (_0) {
         Result {
-
+            result: Rust::Lit(Rust::LitInt(0, _, _)),
+            ..
             } => {
             Rust::Lit((Rust::LitBool(false)))
         },
         Result {
-
+            result: Rust::Lit(Rust::LitInt(1, _, _)),
+            ..
             } => {
             Rust::Lit((Rust::LitBool(true)))
         },
         Result {
-
+            resultType: t, result: v, ..
             } => {
             match t {
                 IsBool => {
