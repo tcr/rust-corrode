@@ -1087,6 +1087,8 @@ pub mod IntMap {
 
     pub fn filter() -> () {}
 
+    pub fn null() -> () {}
+
     pub type IntMap<B> = HashMap<isize, B>;
 }
 
@@ -1217,7 +1219,7 @@ pub fn evalRWST() -> () {}
 
 pub fn mapRWST() -> () {}
 
-pub struct RWST {}
+pub struct RWST<a, b, c, d> {}
 
 pub fn sequence() -> () {}
 
@@ -1262,6 +1264,32 @@ pub fn censor() -> () {}
 pub fn local() -> () {}
 
 pub fn listen() -> () {}
+
+pub fn execState() -> () {}
+
+pub fn intercalate() -> () {}
+
+pub fn compare() -> () {}
+
+pub fn max() -> () {}
+
+pub fn offset() -> () {}
+
+pub fn mapExceptT() -> () {}
+
+pub fn __op_mul_arrow() -> () {}
+
+pub fn mapM() -> () {}
+
+pub fn throwE() -> () {}
+
+pub struct ExceptT<a, b, c> {}
+
+pub struct ST<a> {}
+
+pub fn runST() -> () {}
+
+pub fn mapM_() -> () {}
 
 
 // Ordering

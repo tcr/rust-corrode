@@ -373,7 +373,7 @@ pub fn unimplemented<a, s, node: Pretty + Pos>(node: node) -> EnvMonad<s, a> {
     noTranslation(node, "Corrode doesn\'t handle this yet".to_string())
 }
 
-pub fn badSource<a, s, node: Prettty + Pos>(node: node, msg: String) -> EnvMonad<s, a> {
+pub fn badSource<a, s, node: Pretty + Pos>(node: node, msg: String) -> EnvMonad<s, a> {
     noTranslation(
         node,
         (__op_addadd(
@@ -408,10 +408,6 @@ pub fn interpretTranslationUnit(
         },
     };
 
-    let (err, output) = runST(
-        (evalRWST((runExceptT((mapM_(perDecl, decls)))), initFlow, initState)),
-    );
-
     let perDecl = |_0| {
         match (_0) {
             CFDefExt(f) => interpretFunction(f),
@@ -426,6 +422,10 @@ pub fn interpretTranslationUnit(
             decl => unimplemented(decl),
         }
     };
+
+    let (err, output) = runST(
+        (evalRWST((runExceptT((mapM_(perDecl, decls)))), initFlow, initState)),
+    );
 
     let completeTypes = Set::fromList(catMaybes(
         /* Expr::Generator */
@@ -469,6 +469,7 @@ pub type MakeBinding<s, a> = (
 );
 
 pub fn makeStaticBinding<s>() -> MakeBinding<s, Rust::Item> {
+    let attrs = vec![Rust::Attribute("no_mangle".to_string())];
 
     let makeBinding = |__mut, var, ty, node, minit| {
         /*do*/
@@ -482,8 +483,6 @@ pub fn makeStaticBinding<s>() -> MakeBinding<s, Rust::Item> {
             ))
         }
     };
-
-    let attrs = vec![Rust::Attribute("no_mangle".to_string())];
 
     (Rust::Item(vec![], Rust::Private), makeBinding)
 }
@@ -767,6 +766,43 @@ pub fn resolveCurrentObject<s>(
 }
 
 pub fn interpretInitializer<s>(ty: CType, initial: CInit) -> EnvMonad<s, Rust::Expr> {
+    // TODO function prototype is wrong
+    pub fn helper(_0: Result, _1: Rust::Expr) -> Rust::Expr {
+        match (_0, _1) {
+            (_, Initializer(Some(expr), initials)) if IntMap::null(initials) => {
+                __return(expr)
+            },
+            (IsArray(_, _, el), Initializer(expr, initials)) => {
+                match expr {
+                    None => {
+                        __op_dollar_arrow(Rust::ArrayExpr, mapM((helper(el)), (IntMap::elems(initials))))
+                    },
+                    Some(_) => {
+                        unimplemented(initial)
+                    },
+                }
+            },
+            (IsStruct(__str, fields), Initializer(expr, initials)) => {
+                let fields_q = forM((IntMap::toList(initials)), box |(idx, value)| { match drop(idx, fields) {
+                    [(field, ty_q), _] => {
+                        /*do*/ {
+                            let value_q = helper(ty_q, value);
+
+                            __return((field, value_q))
+                        }
+                    },
+                    [] => {
+                        noTranslation(initial, (__op_addadd("internal error: ".to_string(), __op_addadd(show(strTy), __op_addadd(" doesn\'t have enough fields to initialize field ".to_string(), show(idx))))))
+                    },
+                } });
+
+                __op_dollar_arrow(Rust::StructExpr(__str), __op_mul_arrow(fields_q, __pure(expr)))
+            },
+            (_, _) => {
+                badSource(initial, "initializer".to_string())
+            },
+        }
+    }
 
     let zeroInitialize = |_0, _1, _2, _3| {
         match (_0, _1, _2, _3) {
@@ -1063,7 +1099,8 @@ pub fn interpretStatement<s>(
                 __return((vec![], Branch(label)))
             }
         }
-        (stmt, __OP__, CCase(expr, body, node), next) => {
+        (CCase(expr, body, node), next) => {
+            let stmt = _0;
             /*do*/
             {
                 let selector = getSwitchExpression(stmt);
@@ -1073,7 +1110,8 @@ pub fn interpretStatement<s>(
                 addSwitchCase((Some(condition)), body, next)
             }
         }
-        (stmt, __OP__, CCases(lower, upper, body, node), next) => {
+        (CCases(lower, upper, body, node), next) => {
+            let stmt = _0;
             /*do*/
             {
                 let selector = getSwitchExpression(stmt);
@@ -1142,7 +1180,8 @@ pub fn interpretStatement<s>(
                 __return((vec![], CondBranch(c_q, trueLabel, falseLabel)))
             }
         }
-        (stmt, __OP__, CSwitch(expr, body, node), next) => {
+        (CSwitch(expr, body, node), next) => {
+            let stmt = _0;
             /*do*/
             {
                 let (bindings, expr_q) = match expr {
@@ -1192,7 +1231,16 @@ pub fn interpretStatement<s>(
                     [defaultCase] => __return(defaultCase),
                     _ => lift(lift(badSource(stmt, "duplicate default cases".to_string()))),
                 };
+                
+                let conditionBlock = |(target, condition), defaultCase| {
+                    /*do*/ {
+                        let label = newLabel;
 
+                        addBlock(label, vec![], (CondBranch(condition, target, defaultCase)));
+                        __return(label)
+                    }
+                };
+                
                 let entry = __foldrM!(conditionBlock, defaultCase, (IntMap::toList(conditions)));
 
                 let (rest, end) = next;
@@ -1329,7 +1377,8 @@ pub fn interpretStatement<s>(
                 __return((vec![], Branch(label)))
             }
         }
-        (stmt, __OP__, CCont(_), next) => {
+        (CCont(_), next) => {
+            let stmt = _0;
             /*do*/
             {
                 let _ = next;
@@ -1342,7 +1391,8 @@ pub fn interpretStatement<s>(
                 }
             }
         }
-        (stmt, __OP__, CBreak(_), next) => {
+        (CBreak(_), next) => {
+            let stmt = _0;
             /*do*/
             {
                 let _ = next;
@@ -1355,7 +1405,8 @@ pub fn interpretStatement<s>(
                 }
             }
         }
-        (stmt, __OP__, CReturn(expr, _), next) => {
+        (CReturn(expr, _), next) => {
+            let stmt = _0;
             /*do*/
             {
                 let _ = next;
@@ -1515,6 +1566,15 @@ pub fn cfgToRust<s, node: Pretty + Pos>(
 
     let mkLoop =
         |l, b| exprToStatements((Rust::Loop((Some((loopLabel(l)))), (statementsToBlock(b)))));
+    
+    // TODO make fn
+    let simplifyIf = |_0, _1, _2| match (_0, _1, _2) {
+        (c, Rust::Block([], None), Rust::Block([], None)) => result(c),
+        (c, Rust::Block([], None), f) => {
+            Rust::IfThenElse((toNotBool(c)), f, (Rust::Block(vec![], None)))
+        }
+        (c, t, f) => Rust::IfThenElse((toBool(c)), t, f),
+    };
 
     let mkIf = |c, t, f| {
         exprToStatements(
@@ -1537,15 +1597,6 @@ pub fn cfgToRust<s, node: Pretty + Pos>(
     };
 
     let mkMatch = flip((foldr(go)));
-
-    // TODO make fn
-    let simplifyIf = |_0, _1, _2| match (_0, _1, _2) {
-        (c, Rust::Block([], None), Rust::Block([], None)) => result(c),
-        (c, Rust::Block([], None), f) => {
-            Rust::IfThenElse((toNotBool(c)), f, (Rust::Block(vec![], None)))
-        }
-        (c, t, f) => Rust::IfThenElse((toBool(c)), t, f),
-    };
 
     /*do*/
     {
@@ -1720,14 +1771,18 @@ pub fn interpretExpr<s>(_0: bool, expr: CExpr) -> EnvMonad<s, Result> {
 
                 let f_q = interpretExpr(demand, f);
 
-                __assign!(if demand {                     
+                let mkIf = |c_q, t_q, f_q| {
+                    Rust::IfThenElse(c_q, (Rust::Block(vec![], (Some(t_q)))), (Rust::Block(vec![], (Some(f_q)))))
+                };
+
+                if demand {                     
 promotePtr(expr, (mkIf(c_q)), t_q, f_q)} else {
 __return(Result)
                     }, {
                     resultType: IsVoid,
                     resultMutable: Rust::Immutable,
                     result: mkIf(c_q, (result(t_q)), (result(f_q)))
-                })
+                }
             }
         }
         (_, expr, __OP__, CBinary(op, lhs, rhs, _)) => {
@@ -1934,7 +1989,8 @@ __return(Result)
 
                 match resultType(func_q) {
                     IsFunc(retTy, argTys, variadic) => {
-                        let castArgs = |_0, _1, _2| {
+                        // TODO argumnt types are wrong hre
+                        fn castArgs(expr: CExpr, _0: bool, _1: Vec<()>, _2: Vec<CExpr>) -> () {
                             match (_0, _1, _2) {
                                 (_, [], []) => __return(vec![]),
                                 (variadic, [ty, tys], [arg, rest]) => {
@@ -1942,7 +1998,7 @@ __return(Result)
                                     {
                                         let arg_q = interpretExpr(true, arg);
 
-                                        let args_q = castArgs(variadic, tys, rest);
+                                        let args_q = castArgs(expr, variadic, tys, rest);
 
                                         __return((__op_concat(castTo(ty, arg_q), args_q)))
                                     }
@@ -1967,7 +2023,7 @@ __return(Result)
 
                         /*do*/
                         {
-                            let args_q = castArgs(variadic, (__map!(snd, argTys)), args);
+                            let args_q = castArgs(expr, variadic, (__map!(snd, argTys)), args);
 
                             __return(Result {
                                 resultType: retTy,
@@ -2194,6 +2250,9 @@ pub fn toPtr(ptr: Result) -> Option<Result> {
 pub fn binop<s>(expr: CExpr, op: CBinaryOp, lhs: Result, rhs: Result) -> EnvMonad<s, Result> {
 
     let shift = |op_q| {
+        let lhsTy = intPromote(resultType(lhs));
+        let rhsTy = intPromote(resultType(rhs));
+
         __return(Result {
             resultType: lhsTy,
             resultMutable: Rust::Immutable,
@@ -2788,18 +2847,37 @@ pub fn toRustType(_0: CType) -> Rust::TypeName {
         IsFunc(retTy, args, variadic) => {
             let typename = |/* TODO ViewPattern */
                             toRustType| { t };
+            
+            let args_q = intercalate(", ".to_string(), (__op_addadd(__map!((typename(snd)), args),
+                if variadic {
+                    vec!["...".to_string()]
+                } else {
+                    vec![]
+                })));
 
             Rust::TypeName(concat(vec![
-                        "unsafe extern fn(".to_string(),
-                        args_q,
-                        ")".to_string(),
-                        if __op_assign_div(retTy, IsVoid) {                     
-__op_addadd(" -> ".to_string(), typename(retTy))} else {
-"".to_string()
-                    },
-                    ]))
+                    "unsafe extern fn(".to_string(),
+                    args_q,
+                    ")".to_string(),
+                    if __op_assign_div(retTy, IsVoid) {                     
+                        __op_addadd(" -> ".to_string(), typename(retTy))
+                    } else {
+                        "".to_string()
+                },
+            ]))
         }
         IsPtr(__mut, to) => {
+            let rustMut = |_0| {
+                match (_0) {
+                    Rust::Mutable => {
+                        "*mut ".to_string()
+                    },
+                    Rust::Immutable => {
+                        "*const ".to_string()
+                    },
+                }
+            };
+            
             let to_q: Rust::TypeName = toRustType(to);
 
             Rust::TypeName((__op_addadd(rustMut(__mut), to_q)))
@@ -2938,7 +3016,8 @@ pub fn baseTypeOf<s>(
         }
     }
 
-    let singleSpec = |_0| {
+    // TODO wrong rturn type
+    fn singleSpec<T>(_0: Vec<CTypeSpecifier<T>>) -> () {
         match (_0) {
             [CVoidType(_)] => __return((__return(IsVoid))),
             [CBoolType(_)] => __return((__return(IsBool))),
@@ -3331,9 +3410,9 @@ pub fn mutable<a>(quals: Vec<CTypeQualifier<a>>) -> Rust::Mutable {
     }
 }
 
-pub fn typeName<s>(_0: CDecl) -> EnvMonad<s, (Rust::Mutable, CType)> {
-    match _0 {
-        CStaticAssert { .. } => badSource(_0, "static assert in type name ".to_string()),
+pub fn typeName<s>(decl: CDecl) -> EnvMonad<s, (Rust::Mutable, CType)> {
+    match decl {
+        CStaticAssert { .. } => badSource(decl, "static assert in type name ".to_string()),
         CDecl(spec, declarators, _) => {
             /*do*/
             {
@@ -3348,7 +3427,7 @@ pub fn typeName<s>(_0: CDecl) -> EnvMonad<s, (Rust::Mutable, CType)> {
                     [(Some(declr, __OP__, CDeclarator(None, _, _, _, _)), None, None)] => {
                         derivedTypeOf(base, declr)
                     }
-                    _ => badSource(_0, "type name".to_string()),
+                    _ => badSource(decl, "type name".to_string()),
                 };
 
                 if (typeIsFunc(itype)) {

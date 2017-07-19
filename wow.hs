@@ -4,4 +4,4 @@ where
 promoteArg :: Result -> Rust.Expr
 promoteArg r = alpha
     where
-        output = runST (evalRWST (runExceptT (mapM_ perDecl decls)) initFlow initState)
+        mkIf c' t' f' = Rust.IfThenElse c' (Rust.Block [] (Just t')) (Rust.Block [] (Just f'))
