@@ -73,12 +73,9 @@ pub fn mapBuildCFGT<n, s, c, a, b>(input: BuildCFGT<n, s, c, a>) -> BuildCFGT<n,
     mapStateT
 }
 
-pub struct BuildState<s, c>{
-    buildLabel: Label,
-    buildBlocks: IntMap::IntMap<BasicBlock<s, c>>
-}
-fn buildLabel<s, c>(a: BuildState<s, c>) -> Label { a.buildLabel }
-fn buildBlocks<s, c>(a: BuildState<s, c>) -> IntMap::IntMap<BasicBlock<s, c>> { a.buildBlocks }
+pub struct BuildState<s, c>(Label, IntMap::IntMap<BasicBlock<s, c>>);
+fn buildLabel<s, c>(a: BuildState<s, c>) -> Label { a.0 }
+fn buildBlocks<s, c>(a: BuildState<s, c>) -> IntMap::IntMap<BasicBlock<s, c>> { a.1 }
 
 pub fn newLabel<m, s, c>() -> BuildCFGT<m, s, c, Label> {
     /*do*/ {
@@ -109,7 +106,8 @@ pub fn buildCFG<m, s, c>(root: BuildCFGT<m, s, c, Label>) -> m<CFG<Unordered, s,
 
 pub fn removeEmptyBlocks<k, s, c>(CFG(start, blocks): CFG<k, f<s>, c>) -> CFG<Unordered, f<s>, c> {
 
-    let go = /*do*/ {
+    fn go() -> () {
+        /*do*/ {
             let (empties, done) = get;
 
             match IntMap::minViewWithKey(empties) {
@@ -120,11 +118,12 @@ pub fn removeEmptyBlocks<k, s, c>(CFG(start, blocks): CFG<k, f<s>, c>) -> CFG<Un
                     /*do*/ {
                         put((empties_q, done));
                         step(from, to);
-                        go
+                        go()
                     }
                 },
             }
-        };
+        }
+    }
 
     let step = |from, to| {
         /*do*/ {
@@ -166,6 +165,20 @@ pub fn removeEmptyBlocks<k, s, c>(CFG(start, blocks): CFG<k, f<s>, c>) -> CFG<Un
 
     let discards = IntMap::keysSet((IntMap::filterWithKey((__op_assign_div), rewrites)));
 
+    let rewriteBlock = |_0, _1| {
+        match (_0, _1) {
+            (from, _) if IntSet::member(from, discards) => {
+                None
+            }
+            (_, BasicBlock(b, term)) => {
+                Some(BasicBlock(b, __fmap!(rewrite, term)))
+            }
+            _ => {
+                panic!("Irrefutable pattern")
+            }
+        }
+    };
+
     let blocks_q = IntMap::mapMaybeWithKey(rewriteBlock, blocks);
 
     CFG((rewrite(start)), blocks_q)
@@ -174,7 +187,7 @@ pub fn removeEmptyBlocks<k, s, c>(CFG(start, blocks): CFG<k, f<s>, c>) -> CFG<Un
 #[derive(Debug)]
 pub enum StructureLabel<s, c> {
     GoTo(Label), // structureLabel
-    ExitTo(label), // structureLabel
+    ExitTo(Label), // structureLabel
     Nested(Vec<Structure<s, c>>)
 }
 pub use self::StructureLabel::*;
@@ -243,6 +256,17 @@ pub fn relooperRoot<k, c, s>(CFG(entry, blocks): CFG<k, s, c>) -> Vec<Structure<
 }
 
 pub fn relooper<c, s>(entries: IntSet::IntSet, blocks: IntMap::IntMap<StructureBlock<s, c>>) -> Vec<Structure<s, c>> {
+    //TODO unsure if input type is correct
+    fn grow<T>(r: IntSet::IntSet) -> IntMap::IntMap<T> {
+        IntMap::map((box |seen| { IntSet::unions(__op_concat(seen, IntMap::elems((restrictKeys(r, seen))))) }), r)
+    };
+
+    fn go<T>(r: IntSet::IntSet) -> IntMap::IntMap<T> {
+        //TODO unsure if output type is correct
+        let r_q = grow(r);
+
+        if __op_assign_div(r, r_q) { go(r_q) } else { r_q }
+    };
 
     let strictReachableFrom = flipEdges((go((IntMap::map(successors, blocks)))));
 

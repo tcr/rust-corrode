@@ -1267,7 +1267,7 @@ pub fn __op_line_concat() -> () {
 }
 
 pub fn __op_doc_concat() -> () {
-    
+
 }
 
 pub fn hsep() -> () {
@@ -1388,6 +1388,64 @@ pub fn __op_dollar_arrow() -> () {
 
 }
 
+pub fn __op_dollar() -> () {
+
+}
+
+pub fn __op_div() -> () {
+
+}
+
 pub fn catMaybes() -> () {
 
 }
+
+pub fn mapStateT() -> () {
+
+}
+
+pub fn runStateT() -> () {
+
+}
+
+pub struct StateT<a, b, c> {
+
+}
+
+pub fn join() -> () {
+
+}
+
+pub trait Pretty {
+
+}
+
+pub fn last() -> () {
+
+}
+
+pub fn notElem() -> () {
+
+}
+
+pub fn censor() -> () {
+
+}
+
+pub fn local() -> () {
+
+}
+
+pub fn listen() -> () {
+    
+}
+
+
+// Ordering
+
+pub enum Ordering {
+    LT, 
+    EQ,	 
+    GT,
+}
+pub use self::Ordering::*;

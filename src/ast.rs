@@ -131,7 +131,7 @@ pub use self::Enumerator::*;
 pub enum Expr {
     Lit(Lit),
     Var(VarName),
-    Path(PathName),
+    Path(PathSegments),
     Index(Expr, Expr),
     ArrayExpr(Vec<Expr>),
     RepeatArray(Expr, Expr),
