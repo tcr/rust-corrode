@@ -77,7 +77,9 @@ pub mod List {
 }
 
 pub fn __op_index<F, T: ::std::ops::Index<F>>(a: T, pos: F) -> (<T as std::ops::Index<F>>::Output)
-where <T as std::ops::Index<F>>::Output: std::marker::Sized + Clone {
+where
+    <T as std::ops::Index<F>>::Output: std::marker::Sized + Clone,
+{
     a[pos].clone()
 }
 
@@ -98,7 +100,7 @@ macro_rules! __assign {
 #[derive(Clone, Debug)]
 pub enum Either<A, B> {
     Left(A),
-    Right(B)
+    Right(B),
 }
 pub use self::Either::*;
 
@@ -278,8 +280,7 @@ pub fn __break_str<F: Fn(char) -> bool>(cond: F, input: String) -> (String, Stri
 }
 
 pub fn any<T: Clone, F: Fn(T) -> bool>(cond: F, input: Vec<T>) -> bool {
-    input.iter()
-        .any(|x| cond(x.clone()))
+    input.iter().any(|x| cond(x.clone()))
 }
 
 pub fn isJust<T>(input: Option<T>) -> bool {
@@ -395,7 +396,7 @@ pub fn takeWhile<T: Clone, F: Fn(T) -> bool>(cond: F, input: Vec<T>) -> Vec<T> {
         if cond(item.clone()) {
             left.push(item);
         } else {
-            return left
+            return left;
         }
     }
     left
@@ -560,7 +561,10 @@ impl ShowS for showString {
 
 pub trait ReadS<A> {
     fn read_s(&self) -> Vec<(A, String)>;
-    fn map<F: Fn((isize, String)) -> (isize, String)>(self, f: F) -> Self where Self: Sized {
+    fn map<F: Fn((isize, String)) -> (isize, String)>(self, f: F) -> Self
+    where
+        Self: Sized,
+    {
         // TODO
         self
     }
@@ -807,9 +811,7 @@ pub struct FilePath {
 
 impl From<String> for FilePath {
     fn from(value: String) -> Self {
-        FilePath {
-            path: value
-        }
+        FilePath { path: value }
     }
 }
 
@@ -821,7 +823,7 @@ impl From<FilePath> for String {
 
 impl ToString for FilePath {
     fn to_string(&self) -> String {
-        return self.path.clone()
+        return self.path.clone();
     }
 }
 
@@ -831,11 +833,12 @@ pub struct FileHandle {
 
 pub fn openTempFile(t: FilePath, template: FilePath) -> (FilePath, FileHandle) {
     // TODO
-    (FilePath {
-        path: "".to_string()
-    }, FileHandle {
-        path: ()
-    })
+    (
+        FilePath {
+            path: "".to_string(),
+        },
+        FileHandle { path: () },
+    )
 }
 
 pub fn hClose(h: FileHandle) {
@@ -849,7 +852,7 @@ pub fn removeFile(p: FilePath) {
 pub fn getTemporaryDirectory() -> FilePath {
     // TODO
     FilePath {
-        path: "TODO".to_string()
+        path: "TODO".to_string(),
     }
 }
 
@@ -897,7 +900,7 @@ pub mod Set {
     use std::hash::Hash;
     use std::fmt::Debug;
     use std::collections::HashSet;
-        
+
     #[derive(Clone, Debug)]
     pub struct Set<T: Eq + Hash>(HashSet<T>);
 
@@ -924,17 +927,11 @@ pub mod Set {
         Set(HashSet::new())
     }
 
-    pub fn difference() -> () {
+    pub fn difference() -> () {}
 
-    }
+    pub fn notMember() -> () {}
 
-    pub fn notMember() -> () {
-
-    }
-
-    pub fn singleton() -> () {
-
-    }
+    pub fn singleton() -> () {}
 }
 
 
@@ -971,13 +968,9 @@ pub fn __op_rshift(left: isize, right: isize) {
 pub mod Map {
     use std::collections::HashMap;
 
-    pub fn singleton() -> () {
+    pub fn singleton() -> () {}
 
-    }
-
-    pub fn member() -> () {
-
-    }
+    pub fn member() -> () {}
 
     pub fn lookup<A, B: Clone>(value: A, inside: HashMap<A, B>) -> Option<B> {
         inside.get(value).clone()
@@ -998,13 +991,9 @@ pub mod Map {
         hashmap![]
     }
 
-    pub fn unionWith() -> () {
+    pub fn unionWith() -> () {}
 
-    }
-
-    pub fn fromListWith() -> () {
-        
-    }
+    pub fn fromListWith() -> () {}
 
     pub fn empty<A, B>() -> HashMap<A, B> {
         hashmap![]
@@ -1037,122 +1026,66 @@ pub mod IntMap {
         hashmap![]
     }
 
-    pub fn unionWith() -> () {
+    pub fn unionWith() -> () {}
 
-    }
+    pub fn difference() -> () {}
 
-    pub fn difference() -> () {
+    pub fn fromDistinctAscList() -> () {}
 
-    }
-
-    pub fn fromDistinctAscList() -> () {
-
-    }
-
-    pub fn size() -> () {
-
-    }
+    pub fn size() -> () {}
 
 
-    pub fn intersectionWith() -> () {
+    pub fn intersectionWith() -> () {}
 
-    }
+    pub fn fromListWith() -> () {}
 
-    pub fn fromListWith() -> () {
-        
-    }
+    pub fn findWithDefault() -> () {}
 
-    pub fn findWithDefault() -> () {
+    pub fn keysSet() -> () {}
 
-    }
+    pub fn elems() -> () {}
 
-    pub fn keysSet() -> () {
-
-    }
-
-    pub fn elems() -> () {
-
-    }
-
-    pub fn mapMaybeWithKey() -> () {
-
-    }
+    pub fn mapMaybeWithKey() -> () {}
 
     pub fn empty<B>() -> HashMap<isize, B> {
         hashmap![]
     }
 
-    pub fn intersection() -> () {
+    pub fn intersection() -> () {}
 
-    }
+    pub fn fromSet() -> () {}
 
-    pub fn fromSet() -> () {
+    pub fn map() -> () {}
 
-    }
+    pub fn union() -> () {}
 
-    pub fn map() -> () {
+    pub fn unionsWith() -> () {}
 
-    }
-    
-    pub fn union() -> () {
+    pub fn singleton() -> () {}
 
-    }
+    pub fn toList() -> () {}
 
-    pub fn unionsWith() -> () {
+    pub fn updateLookupWithKey() -> () {}
 
-    }
+    pub fn minViewWithKey() -> () {}
 
-    pub fn singleton() -> () {
+    pub fn keys() -> () {}
 
-    }
+    pub fn splitLookup() -> () {}
 
-    pub fn toList() -> () {
+    pub fn filterWithKey() -> () {}
 
-    }
+    pub fn mapMaybe() -> () {}
 
-    pub fn updateLookupWithKey() -> () {
+    pub fn mapEither() -> () {}
 
-    }
+    pub fn deleteFindMax() -> () {}
 
-    pub fn minViewWithKey() -> () {
+    pub fn mapWithKey() -> () {}
 
-    }
+    pub fn unions() -> () {}
 
-    pub fn keys() -> () {
-
-    }
-
-    pub fn splitLookup() -> () {
-
-    }
-
-    pub fn filterWithKey() -> () {
-
-    }
-
-    pub fn mapMaybe() -> () {
-
-    }
-
-    pub fn mapEither() -> () {
-
-    }
-
-    pub fn deleteFindMax() -> () {
-
-    }
-
-    pub fn mapWithKey() -> () {
-
-    }
-
-    pub fn unions() -> () {
-
-    }
-
-    pub fn filter() -> () {
-
-    }
+    pub fn filter() -> () {}
 
     pub type IntMap<B> = HashMap<isize, B>;
 }
@@ -1164,53 +1097,31 @@ pub mod IntSet {
         hashset![]
     }
 
-    pub fn insert() -> () {
+    pub fn insert() -> () {}
 
-    }
+    pub fn difference() -> () {}
 
-    pub fn difference() -> () {
+    pub fn unions() -> () {}
 
-    }
-
-    pub fn unions() -> () {
-        
-    }
-
-    pub fn member() -> () {
-
-    }
+    pub fn member() -> () {}
 
     pub fn null() -> bool {
         false
     }
 
-    pub fn singleton() -> () {
+    pub fn singleton() -> () {}
 
-    }
+    pub fn fromList() -> () {}
 
-    pub fn fromList() -> () {
+    pub fn intersection() -> () {}
 
-    }
+    pub fn union() -> () {}
 
-    pub fn intersection() -> () {
+    pub fn toList() -> () {}
 
-    }
+    pub fn findMin() -> () {}
 
-    pub fn union() -> () {
-
-    }
-
-    pub fn toList() -> () {
-
-    }
-
-    pub fn findMin() -> () {
-
-    }
-
-    pub fn size() -> () {
-
-    }
+    pub fn size() -> () {}
 
     pub type IntSet = HashSet<isize>;
 }
@@ -1224,9 +1135,7 @@ pub struct Doc {
 }
 
 pub fn text(input: String) -> Doc {
-    Doc {
-        contents: input
-    }
+    Doc { contents: input }
 }
 
 
@@ -1234,65 +1143,39 @@ pub fn text(input: String) -> Doc {
 
 // TODO delete
 
-pub fn lookup() -> () {
+pub fn lookup() -> () {}
 
-}
+pub fn sep() -> () {}
 
-pub fn sep() -> () {
+pub fn pPrint() -> () {}
 
-}
+pub fn nest() -> () {}
 
-pub fn pPrint() -> () {
+pub fn punctuate() -> () {}
 
-}
+pub fn pretty() -> () {}
 
-pub fn nest() -> () {
+pub fn render() -> () {}
 
-}
+pub fn __op_line_concat() -> () {}
 
-pub fn punctuate() -> () {
-
-}
-
-pub fn pretty() -> () {
-
-}
-
-pub fn render() -> () {
-
-}
-
-pub fn __op_line_concat() -> () {
-
-}
-
-pub fn __op_doc_concat() -> () {
-
-}
+pub fn __op_doc_concat() -> () {}
 
 pub fn hsep() -> () {
     // TODO delete
 }
 
-pub fn step() -> () {
-
-}
+pub fn step() -> () {}
 
 pub fn prettyGroup() -> () {
     // TODO delete
 }
 
-pub fn put() -> () {
+pub fn put() -> () {}
 
-}
+pub fn modify() -> () {}
 
-pub fn modify() -> () {
-
-}
-
-pub fn get() -> () {
-
-}
+pub fn get() -> () {}
 
 pub fn lift() -> () {
     // TODO delete
@@ -1318,134 +1201,74 @@ pub fn vcat() -> () {
     // TODO delete
 }
 
-pub fn concat() -> () {
+pub fn concat() -> () {}
 
-}
+pub fn fail() -> () {}
 
-pub fn fail() -> () {
-    
-}
+pub fn subscript() -> () {}
 
-pub fn subscript() -> () {
-    
-}
+pub fn writeSTRef() -> () {}
 
-pub fn writeSTRef() -> () {
-    
-}
+pub fn readSTRef() -> () {}
 
-pub fn readSTRef() -> () {
-    
-}
+pub fn newSTRef() -> () {}
 
-pub fn newSTRef() -> () {
-    
-}
+pub fn evalRWST() -> () {}
 
-pub fn evalRWST() -> () {
+pub fn mapRWST() -> () {}
 
-}
+pub struct RWST {}
 
-pub fn mapRWST() -> () {
-    
-}
+pub fn sequence() -> () {}
 
-pub struct RWST { }
+pub fn zeroInitialize() -> () {}
 
-pub fn sequence() -> () {
+pub fn foldl() -> () {}
 
-}
+pub fn unfoldl() -> () {}
 
-pub fn zeroInitialize() -> () {
+pub fn unfoldr() -> () {}
 
-}
+pub fn foldM() -> () {}
 
-pub fn foldl() -> () {
+pub fn forM() -> () {}
 
-}
+pub fn __pure() -> () {}
 
-pub fn unfoldl() -> () {
+pub fn __op_dollar_arrow() -> () {}
 
-}
+pub fn __op_dollar() -> () {}
 
-pub fn unfoldr() -> () {
-    
-}
+pub fn __op_div() -> () {}
 
-pub fn foldM() -> () {
+pub fn catMaybes() -> () {}
 
-}
+pub fn mapStateT() -> () {}
 
-pub fn forM() -> () {
+pub fn runStateT() -> () {}
 
-}
+pub struct StateT<a, b, c> {}
 
-pub fn __pure() -> () {
+pub fn join() -> () {}
 
-}
+pub trait Pretty {}
 
-pub fn __op_dollar_arrow() -> () {
+pub fn last() -> () {}
 
-}
+pub fn notElem() -> () {}
 
-pub fn __op_dollar() -> () {
+pub fn censor() -> () {}
 
-}
+pub fn local() -> () {}
 
-pub fn __op_div() -> () {
-
-}
-
-pub fn catMaybes() -> () {
-
-}
-
-pub fn mapStateT() -> () {
-
-}
-
-pub fn runStateT() -> () {
-
-}
-
-pub struct StateT<a, b, c> {
-
-}
-
-pub fn join() -> () {
-
-}
-
-pub trait Pretty {
-
-}
-
-pub fn last() -> () {
-
-}
-
-pub fn notElem() -> () {
-
-}
-
-pub fn censor() -> () {
-
-}
-
-pub fn local() -> () {
-
-}
-
-pub fn listen() -> () {
-    
-}
+pub fn listen() -> () {}
 
 
 // Ordering
 
 pub enum Ordering {
-    LT, 
-    EQ,	 
+    LT,
+    EQ,
     GT,
 }
 pub use self::Ordering::*;

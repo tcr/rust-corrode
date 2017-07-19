@@ -1,7 +1,8 @@
 // Original file: "AST.hs"
 // File auto-generated using Corollary.
 
-#[macro_use] use corollary_support::*;
+#[macro_use]
+use corollary_support::*;
 
 // NOTE: These imports are advisory. You probably need to change them to support Rust.
 // use Data::Char;
@@ -20,7 +21,7 @@ pub struct TypeName(pub String);
 pub enum LitIntRepr {
     DecRepr,
     OctalRepr,
-    HexRepr
+    HexRepr,
 }
 pub use self::LitIntRepr::*;
 
@@ -30,7 +31,7 @@ pub enum Lit {
     LitByteChar(char),
     LitBool(bool),
     LitInt(isize, LitIntRepr, TypeName),
-    LitFloat(String, TypeName)
+    LitFloat(String, TypeName),
 }
 pub use self::Lit::*;
 
@@ -44,14 +45,14 @@ pub struct PathSegments(pub Vec<String>);
 #[derive(Debug, Eq)]
 pub enum Visibility {
     Public,
-    Private
+    Private,
 }
 pub use self::Visibility::*;
 
 #[derive(Debug, Eq)]
 pub enum Mutable {
     Immutable,
-    Mutable
+    Mutable,
 }
 pub use self::Mutable::*;
 
@@ -59,7 +60,7 @@ pub use self::Mutable::*;
 pub enum Stmt {
     Stmt(Expr),
     Let(Mutable, VarName, Option<TypeName>, Option<Expr>),
-    StmtItem(Vec<Attribute>, ItemKind)
+    StmtItem(Vec<Attribute>, ItemKind),
 }
 pub use self::Stmt::*;
 
@@ -71,18 +72,18 @@ pub fn pPrintBlock(_0: Doc, _1: Block) -> Doc {
     match (_0, _1) {
         (pre, Block([], e)) => {
             sep(vec![
-                    __op_doc_concat(pre, text("{".to_string())),
-                    nest(4, (maybe(empty, pPrint, e))),
-                    text("}".to_string()),
-                ])
-        },
+                __op_doc_concat(pre, text("{".to_string())),
+                nest(4, (maybe(empty, pPrint, e))),
+                text("}".to_string()),
+            ])
+        }
         (pre, Block(ss, e)) => {
             sep(vec![
-                    __op_doc_concat(pre, text("{".to_string())),
-                    nest(4, (maybe(empty, pPrint, e))),
-                    text("}".to_string()),
-                ])
-        },
+                __op_doc_concat(pre, text("{".to_string())),
+                nest(4, (maybe(empty, pPrint, e))),
+                text("}".to_string()),
+            ])
+        }
     }
 }
 
@@ -97,33 +98,39 @@ pub struct Item(pub Vec<Attribute>, pub Visibility, pub ItemKind);
 #[derive(Debug)]
 pub enum FunctionAttribute {
     UnsafeFn,
-    ExternABI(Option<String>)
+    ExternABI(Option<String>),
 }
 pub use self::FunctionAttribute::*;
 
 #[derive(Debug)]
 pub enum ItemKind {
-    Function(Vec<FunctionAttribute>, String, Vec<(Mutable, VarName, TypeName)>, TypeName, Block),
+    Function(
+        Vec<FunctionAttribute>,
+        String,
+        Vec<(Mutable, VarName, TypeName)>,
+        TypeName,
+        Block,
+    ),
     Static(Mutable, VarName, TypeName, Expr),
     Struct(String, Vec<(String, TypeName)>),
     Extern(Vec<ExternItem>),
     Use(String),
     Enum(String, Vec<Enumerator>),
-    CloneImpl(TypeName)
+    CloneImpl(TypeName),
 }
 pub use self::ItemKind::*;
 
 #[derive(Debug)]
 pub enum ExternItem {
     ExternFn(String, Vec<(VarName, TypeName)>, bool, TypeName),
-    ExternStatic(Mutable, VarName, TypeName)
+    ExternStatic(Mutable, VarName, TypeName),
 }
 pub use self::ExternItem::*;
 
 #[derive(Debug)]
 pub enum Enumerator {
     EnumeratorAuto(String),
-    EnumeratorExpr(String, Expr)
+    EnumeratorExpr(String, Expr),
 }
 pub use self::Enumerator::*;
 
@@ -173,7 +180,7 @@ pub enum Expr {
     LAnd(Expr, Expr),
     LOr(Expr, Expr),
     Range(Expr, Expr),
-    Assign(Expr, AssignOp, Expr)
+    Assign(Expr, AssignOp, Expr),
 }
 pub use self::Expr::*;
 
@@ -189,7 +196,7 @@ pub enum AssignOp {
     __id_3a7c3d,
     __id_3a5e3d,
     __id_3a3c3c3d,
-    __id_3a3e3e3d
+    __id_3a3e3e3d,
 }
 pub use self::AssignOp::*;
 
@@ -197,9 +204,6 @@ pub use self::AssignOp::*;
 pub enum ExprPosition {
     TopExpr,
     LeftExpr,
-    RightExpr
+    RightExpr,
 }
 pub use self::ExprPosition::*;
-
-
-

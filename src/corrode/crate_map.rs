@@ -1,7 +1,8 @@
 // Original file: "CrateMap.hs"
 // File auto-generated using Corollary.
 
-#[macro_use] use corollary_support::*;
+#[macro_use]
+use corollary_support::*;
 
 #[macro_export]
 macro_rules! __fmap {
@@ -24,7 +25,7 @@ pub enum ItemKind {
     Struct,
     Union,
     Type,
-    Symbol
+    Symbol,
 }
 pub use self::ItemKind::*;
 
@@ -38,15 +39,9 @@ pub type ItemRewrites = Map::Map<(ItemKind, String), Vec<String>>;
 
 pub fn parseCrateMap() -> Either<String, CrateMap> {
 
-    let root = |_0| {
-        match (_0) {
-            (__crate, right) if right.len() == 0 => {
-                __crate
-            },
-            (__crate, unassigned) => {
-                Map::insert("".to_string(), unassigned, __crate)
-            },
-        }
+    let root = |_0| match (_0) {
+        (__crate, right) if right.len() == 0 => __crate,
+        (__crate, unassigned) => Map::insert("".to_string(), unassigned, __crate),
     };
 
     let cleanLine = words(takeWhile((__op_assign_div('#'))));
@@ -55,18 +50,17 @@ pub fn parseCrateMap() -> Either<String, CrateMap> {
         match (_0, _1) {
             (__crate, items) if _0.len() == 2 && _0[0] == "-" => {
                 let item = _0[1];
-                /*do*/ {
+                /*do*/
+                {
                     let item_q = parseItem(item);
 
                     (__crate, __op_concat(item_q, items))
                 }
-            },
+            }
             (__crate, items) if _0.len() == 1 && isSuffixOf(":", _0[0]) => {
                 __return(Map::insert(init(_0[0]), items(__crate), []))
-            },
-            _ => {
-                Left(unwords(vec!["invalid crate map entry:"].extend(_0)))
-            },
+            }
+            _ => Left(unwords(vec!["invalid crate map entry:"].extend(_0))),
         }
     };
 
@@ -80,7 +74,11 @@ pub fn parseCrateMap() -> Either<String, CrateMap> {
             let new = rest[2].clone();
             Right(((kind, old), new))
         } else {
-            Left((unwords((__op_concat("unsupported crate map item:".to_string(), contents)))))
+            Left(
+                (unwords(
+                    (__op_concat("unsupported crate map item:".to_string(), contents)),
+                )),
+            )
         }
     }
 
@@ -88,28 +86,25 @@ pub fn parseCrateMap() -> Either<String, CrateMap> {
         let left = _0.remove(0);
         //TODO check out arms
         match (left, _0) {
-            ("enum", rest) => {
-                (Enum, rest)
-            },
-            ("struct", rest) => {
-                (Enum, rest)
-            },
-            ("union", rest) => {
-                (Enum, rest)
-            },
-            ("typedef", rest) => {
-                (Enum, rest)
-            },
+            ("enum", rest) => (Enum, rest),
+            ("struct", rest) => (Enum, rest),
+            ("union", rest) => (Enum, rest),
+            ("typedef", rest) => (Enum, rest),
             (left, mut rest) => {
                 rest.insert(0, left);
                 (Enum, rest)
-            },
+            }
         }
     }
 
-    __fmap!(root, __foldrM!(parseLine, 
-        (Map::empty, vec![]), 
-        __filter!(|x| not(null(x)), __map!(cleanLine, lines))))
+    __fmap!(
+        root,
+        __foldrM!(
+            parseLine,
+            (Map::empty, vec![]),
+            __filter!(|x| not(null(x)), __map!(cleanLine, lines))
+        )
+    )
 }
 
 pub fn mergeCrateMaps() -> Map::Map<String, CrateMap> {
@@ -136,7 +131,7 @@ pub fn rewritesFromCratesMap(crates: CratesMap) -> ItemRewrites {
     // Map::fromList
     //     [ (item, setCrate [modName, new])
     //     | (crateName, mods) <- Map::toList(crates)
-    //     , let setCrate = match crateName 
+    //     , let setCrate = match crateName
     //             "" -> id
     //             _ -> (crateName :)
     //     , (modName, items) <- Map::toList(mods)
@@ -144,6 +139,3 @@ pub fn rewritesFromCratesMap(crates: CratesMap) -> ItemRewrites {
     //     ]
     // )
 }
-
-
-

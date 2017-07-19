@@ -6,10 +6,12 @@
 #![allow(unused_parens)]
 
 extern crate num;
-#[macro_use] extern crate maplit;
+#[macro_use]
+extern crate maplit;
 extern crate parser_c;
 
-#[macro_use] pub mod support;
+#[macro_use]
+pub mod support;
 pub mod idiomatic;
 pub mod ast;
 pub mod corrode;
