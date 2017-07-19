@@ -88,7 +88,6 @@ macro_rules! __assign {
     ($left: expr, {
         $($field_name:ident: $field_type:expr),+ $(,)*
     }) => {
-        // TODO
         {
             let mut left = $left;
             $( left.$field_name = $field_type; )+
@@ -174,23 +173,10 @@ pub fn __op_bind<A: Bindable<B>, B>(left: A, b: B) -> A {
 }
 impl<T: Display> Bindable<T> for String {
     fn bind_it(mut self, right: T) -> Self {
-        // TODO
         self.push_str(&format!("{}", right));
         self
     }
 }
-
-
-pub fn __op_forwardslash<A, B>(left: A, right: B) -> B {
-    // TODO
-    right
-}
-
-pub fn __op_dollarnot<A, B>(left: A, right: B) -> B {
-    // TODO
-    right
-}
-
 
 pub fn union<A: PartialEq>(mut left: Vec<A>, right: Vec<A>) -> Vec<A> {
     for item in right {
@@ -237,16 +223,6 @@ pub fn __op_assign_div(l: isize, r: isize) -> isize {
 
 pub fn __op_tuple2<A, B>(left: A, right: B) -> (A, B) {
     (left, right)
-}
-
-pub fn __op_power(l: isize, r: isize) -> isize {
-    //TODO
-    l
-}
-
-pub fn __mod(l: isize, r: isize) -> isize {
-    // TODO
-    l
 }
 
 pub fn not(left: bool) -> bool {
@@ -307,26 +283,6 @@ pub fn ord(input: char) -> isize {
     input as isize
 }
 
-pub fn isAscii(input: char) -> bool {
-    // TODO
-    false
-}
-
-pub fn isPrint(input: char) -> bool {
-    // TODO
-    false
-}
-
-pub fn isOctDigit(input: char) -> bool {
-    // TODO
-    false
-}
-
-pub fn isDigit(input: char) -> bool {
-    // TODO
-    false
-}
-
 pub fn head(input: Vec<char>) -> char {
     input[0]
 }
@@ -366,29 +322,9 @@ pub fn flip<A, B, C, F: Fn(A, B) -> C>(input: F, b: B, a: A) -> C {
     input(a, b)
 }
 
-pub fn take(len: isize, input: Vec<String>) {
-    // TODO
-}
-
 pub fn take_str(len: isize, input: String) -> String {
     input.chars().take(len as usize).collect()
 }
-
-pub fn hasExtension(fp: FilePath) -> bool {
-    // TODO
-    false
-}
-
-pub fn replaceExtension(fp: FilePath, ext: String) -> FilePath {
-    // TODO
-    fp
-}
-
-pub fn addExtension(fp: FilePath, ext: String) -> FilePath {
-    // TODO
-    fp
-}
-
 
 pub fn takeWhile<T: Clone, F: Fn(T) -> bool>(cond: F, input: Vec<T>) -> Vec<T> {
     let mut left = vec![];
@@ -558,7 +494,6 @@ impl ShowS for showString {
     }
 }
 
-
 pub trait ReadS<A> {
     fn read_s(&self) -> Vec<(A, String)>;
     fn map<F: Fn((isize, String)) -> (isize, String)>(self, f: F) -> Self
@@ -570,39 +505,10 @@ pub trait ReadS<A> {
     }
 }
 
-// TODO
 use std::fmt;
 impl<A> fmt::Display for ReadS<A> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "...")
-    }
-}
-
-pub struct readHex(pub String);
-impl ReadS<isize> for readHex {
-    fn read_s(&self) -> Vec<(isize, String)> {
-        // TODO
-        vec![]
-    }
-}
-impl ReadS<char> for readHex {
-    fn read_s(&self) -> Vec<(char, String)> {
-        // TODO
-        vec![]
-    }
-}
-
-pub struct readOct(pub String);
-impl ReadS<isize> for readOct {
-    fn read_s(&self) -> Vec<(isize, String)> {
-        // TODO
-        vec![]
-    }
-}
-impl ReadS<char> for readOct {
-    fn read_s(&self) -> Vec<(char, String)> {
-        // TODO
-        vec![]
     }
 }
 
@@ -625,9 +531,8 @@ impl ReadS<isize> for readDec {
 
 // BSC
 
-
 // Char8
-//TODO make this deal with u8's, not chars
+
 pub mod BSC {
     pub fn head(input: Vec<u8>) -> char {
         input[0] as char
@@ -643,11 +548,6 @@ pub mod BSC {
 
     pub fn null(input: Vec<u8>) -> bool {
         input.is_empty()
-    }
-
-    pub fn lines(input: Vec<u8>) -> Vec<Vec<u8>> {
-        //TODO
-        vec![]
     }
 
     pub fn pack(input: String) -> Vec<u8> {
@@ -682,16 +582,6 @@ pub mod BSW {
             vec![]
         }
     }
-
-    pub fn readFile(f: FilePath) -> Vec<u8> {
-        use std::fs::File;
-        use std::io::Read;
-
-        // TODO
-        let mut items = vec![];
-        File::open(f.path).unwrap().read_to_end(&mut items);
-        items
-    }
 }
 
 pub type ByteString = Vec<u8>;
@@ -706,7 +596,6 @@ pub type Word8 = u8;
 #[macro_export]
 macro_rules! __map {
     ($fn: expr) => {
-        //TODO reject this
         panic!("need two arguments for map")
     };
     ($fn: expr, $target: expr) => {
@@ -719,7 +608,6 @@ macro_rules! __map {
 #[macro_export]
 macro_rules! __mapM {
     ($fn: expr) => {
-        //TODO reject this
         panic!("need two arguments for map")
     };
     ($fn: expr, $target: expr) => {
@@ -750,7 +638,6 @@ macro_rules! __fmap {
 #[macro_export]
 macro_rules! __filter {
     ($fn: expr) => {
-        //TODO reject this
         panic!("need two arguments filter")
     };
     ($fn: expr, $target: expr) => {
@@ -792,7 +679,6 @@ macro_rules! __concatMap {
 #[macro_export]
 macro_rules! __error {
     ($fn: expr) => {
-        // TODO
         panic!("ERROR!")
     }
 }
@@ -831,40 +717,8 @@ pub struct FileHandle {
     pub path: (),
 }
 
-pub fn openTempFile(t: FilePath, template: FilePath) -> (FilePath, FileHandle) {
-    // TODO
-    (
-        FilePath {
-            path: "".to_string(),
-        },
-        FileHandle { path: () },
-    )
-}
-
-pub fn hClose(h: FileHandle) {
-    // TODO
-}
-
-pub fn removeFile(p: FilePath) {
-    // TODO
-}
-
-pub fn getTemporaryDirectory() -> FilePath {
-    // TODO
-    FilePath {
-        path: "TODO".to_string(),
-    }
-}
-
-pub fn takeFileName(h: FilePath) -> FilePath {
-    // TODO
-    h
-}
 
 
-
-
-// TODO what do we do here:
 
 pub fn maybe<A, B, F: Fn(A) -> B>(default_: B, method: F, maybe: Option<A>) -> B {
     maybe.map(|x| method(x)).unwrap_or(default_)
@@ -873,18 +727,6 @@ pub fn maybe<A, B, F: Fn(A) -> B>(default_: B, method: F, maybe: Option<A>) -> B
 pub fn fromMaybe<A>(left: A, right: Option<A>) -> A {
     right.unwrap_or(left)
 }
-
-pub fn bracket<A, B, C>(a: A, b: B, c: C) -> C {
-    // TODO these are all methods
-    c
-}
-
-
-pub fn seq<A, B>(a: A, b: B) -> B {
-    // we don't do lazy
-    b
-}
-
 
 
 
@@ -957,10 +799,18 @@ pub fn __op_array_index<T>(mut arr: Vec<T>, idx: isize) -> T {
     arr.remove(idx as usize)
 }
 
-pub fn __op_rshift(left: isize, right: isize) {
-    // TODO
-    unreachable!();
+// Ordering
+
+pub enum Ordering {
+    LT,
+    EQ,
+    GT,
 }
+pub use self::Ordering::*;
+
+
+
+
 
 
 // Just Map things~*
@@ -968,9 +818,15 @@ pub fn __op_rshift(left: isize, right: isize) {
 pub mod Map {
     use std::collections::HashMap;
 
-    pub fn singleton() -> () {}
+    pub type Map<A, B> = HashMap<A, B>;
 
-    pub fn member() -> () {}
+    pub fn singleton() -> () {
+        // TODO
+    }
+
+    pub fn member() -> () {
+        // TODO
+    }
 
     pub fn lookup<A, B: Clone>(value: A, inside: HashMap<A, B>) -> Option<B> {
         inside.get(value).clone()
@@ -991,21 +847,25 @@ pub mod Map {
         hashmap![]
     }
 
-    pub fn unionWith() -> () {}
+    pub fn unionWith() -> () {
+        // TODO
+    }
 
-    pub fn fromListWith() -> () {}
+    pub fn fromListWith() -> () {
+        // TODO
+    }
 
     pub fn empty<A, B>() -> HashMap<A, B> {
         hashmap![]
     }
-
-    pub type Map<A, B> = HashMap<A, B>;
 }
 
 
 
 pub mod IntMap {
     use std::collections::HashMap;
+
+    pub type IntMap<B> = HashMap<isize, B>;
 
     pub fn lookup<B: Clone>(value: isize, inside: HashMap<isize, B>) -> Option<B> {
         inside.get(value).clone()
@@ -1026,106 +886,184 @@ pub mod IntMap {
         hashmap![]
     }
 
-    pub fn unionWith() -> () {}
+    pub fn unionWith() -> () {
+        // TODO
+    }
 
-    pub fn difference() -> () {}
+    pub fn difference() -> () {
+        // TODO
+    }
 
-    pub fn fromDistinctAscList() -> () {}
+    pub fn fromDistinctAscList() -> () {
+        // TODO
+    }
 
-    pub fn size() -> () {}
+    pub fn size() -> () {
+        // TODO
+    }
 
+    pub fn intersectionWith() -> () {
+        // TODO
+    }
 
-    pub fn intersectionWith() -> () {}
+    pub fn fromListWith() -> () {
+        // TODO
+    }
 
-    pub fn fromListWith() -> () {}
+    pub fn findWithDefault() -> () {
+        // TODO
+    }
 
-    pub fn findWithDefault() -> () {}
+    pub fn keysSet() -> () {
+        // TODO
+    }
 
-    pub fn keysSet() -> () {}
+    pub fn elems() -> () {
+        // TODO
+    }
 
-    pub fn elems() -> () {}
-
-    pub fn mapMaybeWithKey() -> () {}
+    pub fn mapMaybeWithKey() -> () {
+        // TODO
+    }
 
     pub fn empty<B>() -> HashMap<isize, B> {
         hashmap![]
     }
 
-    pub fn intersection() -> () {}
+    pub fn intersection() -> () {
+        // TODO
+    }
 
-    pub fn fromSet() -> () {}
+    pub fn fromSet() -> () {
+        // TODO
+    }
 
-    pub fn map() -> () {}
+    pub fn map() -> () {
+        // TODO
+    }
 
-    pub fn union() -> () {}
+    pub fn union() -> () {
+        // TODO
+    }
 
-    pub fn unionsWith() -> () {}
+    pub fn unionsWith() -> () {
+        // TODO
+    }
 
-    pub fn singleton() -> () {}
+    pub fn singleton() -> () {
+        // TODO
+    }
 
-    pub fn toList() -> () {}
+    pub fn toList() -> () {
+        // TODO
+    }
 
-    pub fn updateLookupWithKey() -> () {}
+    pub fn updateLookupWithKey() -> () {
+        // TODO
+    }
 
-    pub fn minViewWithKey() -> () {}
+    pub fn minViewWithKey() -> () {
+        // TODO
+    }
 
-    pub fn keys() -> () {}
+    pub fn keys() -> () {
+        // TODO
+    }
 
-    pub fn splitLookup() -> () {}
+    pub fn splitLookup() -> () {
+        // TODO
+    }
 
-    pub fn filterWithKey() -> () {}
+    pub fn filterWithKey() -> () {
+        // TODO
+    }
 
-    pub fn mapMaybe() -> () {}
+    pub fn mapMaybe() -> () {
+        // TODO
+    }
 
-    pub fn mapEither() -> () {}
+    pub fn mapEither() -> () {
+        // TODO
+    }
 
-    pub fn deleteFindMax() -> () {}
+    pub fn deleteFindMax() -> () {
+        // TODO
+    }
 
-    pub fn mapWithKey() -> () {}
+    pub fn mapWithKey() -> () {
+        // TODO
+    }
 
-    pub fn unions() -> () {}
+    pub fn unions() -> () {
+        // TODO
+    }
 
-    pub fn filter() -> () {}
+    pub fn filter() -> () {
+        // TODO
+    }
 
-    pub fn null() -> () {}
-
-    pub type IntMap<B> = HashMap<isize, B>;
+    pub fn null() -> () {
+        // TODO
+    }
 }
 
 pub mod IntSet {
     use std::collections::HashSet;
 
+    pub type IntSet = HashSet<isize>;
+
     pub fn empty<B>() -> HashSet<isize, B> {
         hashset![]
     }
 
-    pub fn insert() -> () {}
+    pub fn insert() -> () {
+        // TODO
+    }
 
-    pub fn difference() -> () {}
+    pub fn difference() -> () {
+        // TODO
+    }
 
-    pub fn unions() -> () {}
+    pub fn unions() -> () {
+        // TODO
+    }
 
-    pub fn member() -> () {}
+    pub fn member() -> () {
+        // TODO
+    }
 
     pub fn null() -> bool {
+        // TODO
         false
     }
 
-    pub fn singleton() -> () {}
+    pub fn singleton() -> () {
+        // TODO
+    }
 
-    pub fn fromList() -> () {}
+    pub fn fromList() -> () {
+        // TODO
+    }
 
-    pub fn intersection() -> () {}
+    pub fn intersection() -> () {
+        // TODO
+    }
 
-    pub fn union() -> () {}
+    pub fn union() -> () {
+        // TODO
+    }
 
-    pub fn toList() -> () {}
+    pub fn toList() -> () {
+        // TODO
+    }
 
-    pub fn findMin() -> () {}
+    pub fn findMin() -> () {
+        // TODO
+    }
 
-    pub fn size() -> () {}
-
-    pub type IntSet = HashSet<isize>;
+    pub fn size() -> () {
+        // TODO
+    }
 }
 
 
@@ -1143,44 +1081,207 @@ pub fn text(input: String) -> Doc {
 
 
 
-// TODO delete
+// Misc functions for parser-c
+// TODO these should all be filled out (and possibly have a unit test for them)
+// Check their call site for more information on what their function signatures should be
 
-pub fn lookup() -> () {}
+pub fn lookup() -> () {
+    // TODO
+}
 
-pub fn sep() -> () {}
+pub fn sep() -> () {
+    // TODO
+}
 
-pub fn pPrint() -> () {}
+pub fn pPrint() -> () {
+    // TODO
+}
 
-pub fn nest() -> () {}
+pub fn nest() -> () {
+    // TODO
+}
 
-pub fn punctuate() -> () {}
+pub fn punctuate() -> () {
+    // TODO
+}
 
-pub fn pretty() -> () {}
+pub fn pretty() -> () {
+    // TODO
+}
 
-pub fn render() -> () {}
+pub fn render() -> () {
+    // TODO
+}
 
-pub fn __op_line_concat() -> () {}
+pub fn __op_line_concat() -> () {
+    // TODO
+}
 
-pub fn __op_doc_concat() -> () {}
+pub fn __op_doc_concat() -> () {
+    // TODO
+}
 
 pub fn hsep() -> () {
-    // TODO delete
+    // TODO
 }
 
-pub fn step() -> () {}
+pub fn step() -> () {
+    // TODO
+}
 
 pub fn prettyGroup() -> () {
+    // TODO
+}
+
+pub fn vcat() -> () {
     // TODO delete
 }
 
-pub fn put() -> () {}
+pub fn concat() -> () {
+    // TODO
+}
 
-pub fn modify() -> () {}
+pub fn fail() -> () {
+    // TODO
+}
 
-pub fn get() -> () {}
+pub fn subscript() -> () {
+    // TODO
+}
+
+pub fn sequence() -> () {
+    // TODO
+}
+
+pub fn zeroInitialize() -> () {
+    // TODO
+}
+
+pub fn foldl() -> () {
+    // TODO
+}
+
+pub fn unfoldl() -> () {
+    // TODO
+}
+
+pub fn unfoldr() -> () {
+    // TODO
+}
+
+pub fn foldM() -> () {
+    // TODO
+}
+
+pub fn forM() -> () {
+    // TODO
+}
+
+pub fn __pure() -> () {
+    // TODO
+}
+
+pub fn __op_dollar_arrow() -> () {
+    // TODO
+}
+
+pub fn __op_dollar() -> () {
+    // TODO
+}
+
+pub fn __op_div() -> () {
+    // TODO
+}
+
+pub fn catMaybes() -> () {
+    // TODO
+}
+
+
+pub fn join() -> () {
+    // TODO
+}
+
+pub trait Pretty {
+    // TODO
+}
+
+pub fn last() -> () {
+    // TODO
+}
+
+pub fn notElem() -> () {
+    // TODO
+}
+
+pub fn censor() -> () {
+    // TODO
+}
+
+pub fn local() -> () {
+    // TODO
+}
+
+pub fn listen() -> () {
+    // TODO
+}
+
+pub fn intercalate() -> () {
+    // TODO
+}
+
+pub fn compare() -> () {
+    // TODO
+}
+
+pub fn max() -> () {
+    // TODO
+}
+
+pub fn offset() -> () {
+    // TODO
+}
+
+pub fn __op_mul_arrow() -> () {
+    // TODO
+}
+
+pub fn mapM() -> () {
+    // TODO
+}
+
+pub fn throwE() -> () {
+    // TODO
+}
+
+pub fn mapM_() -> () {
+    // TODO
+}
+
+
+
+
+
+
+// Monadic temp functions
+// These should probably be refactored at the call site to not rely on the State monad
+// or functions like lift(), etc. Rather than trying to implement them here.
+// These functions are stubbed out so each abstraction can be handled one at a time.
+
+pub fn put() -> () {
+    // TODO
+}
+
+pub fn modify() -> () {
+    // TODO
+}
+
+pub fn get() -> () {
+    // TODO
+}
 
 pub fn lift() -> () {
-    // TODO delete
+    // TODO
 }
 
 pub fn tell() -> () {
@@ -1199,104 +1300,57 @@ pub fn mappend() -> () {
     // TODO delete
 }
 
-pub fn vcat() -> () {
-    // TODO delete
+pub fn writeSTRef() -> () {
+    // TODO
 }
 
-pub fn concat() -> () {}
+pub fn readSTRef() -> () {
+    // TODO
+}
 
-pub fn fail() -> () {}
+pub fn newSTRef() -> () {
+    // TODO
+}
 
-pub fn subscript() -> () {}
+pub fn evalRWST() -> () {
+    // TODO
+}
 
-pub fn writeSTRef() -> () {}
-
-pub fn readSTRef() -> () {}
-
-pub fn newSTRef() -> () {}
-
-pub fn evalRWST() -> () {}
-
-pub fn mapRWST() -> () {}
+pub fn mapRWST() -> () {
+    // TODO
+}
 
 pub struct RWST<a, b, c, d> {}
 
-pub fn sequence() -> () {}
 
-pub fn zeroInitialize() -> () {}
-
-pub fn foldl() -> () {}
-
-pub fn unfoldl() -> () {}
-
-pub fn unfoldr() -> () {}
-
-pub fn foldM() -> () {}
-
-pub fn forM() -> () {}
-
-pub fn __pure() -> () {}
-
-pub fn __op_dollar_arrow() -> () {}
-
-pub fn __op_dollar() -> () {}
-
-pub fn __op_div() -> () {}
-
-pub fn catMaybes() -> () {}
-
-pub fn mapStateT() -> () {}
-
-pub fn runStateT() -> () {}
-
-pub struct StateT<a, b, c> {}
-
-pub fn join() -> () {}
-
-pub trait Pretty {}
-
-pub fn last() -> () {}
-
-pub fn notElem() -> () {}
-
-pub fn censor() -> () {}
-
-pub fn local() -> () {}
-
-pub fn listen() -> () {}
-
-pub fn execState() -> () {}
-
-pub fn intercalate() -> () {}
-
-pub fn compare() -> () {}
-
-pub fn max() -> () {}
-
-pub fn offset() -> () {}
-
-pub fn mapExceptT() -> () {}
-
-pub fn __op_mul_arrow() -> () {}
-
-pub fn mapM() -> () {}
-
-pub fn throwE() -> () {}
-
-pub struct ExceptT<a, b, c> {}
-
-pub struct ST<a> {}
-
-pub fn runST() -> () {}
-
-pub fn mapM_() -> () {}
-
-
-// Ordering
-
-pub enum Ordering {
-    LT,
-    EQ,
-    GT,
+pub fn mapStateT() -> () {
+    // TODO
 }
-pub use self::Ordering::*;
+
+pub fn runStateT() -> () {
+    // TODO
+}
+
+pub struct StateT<a, b, c> {
+    // TODO
+}
+
+pub fn execState() -> () {
+    // TODO
+}
+
+pub fn mapExceptT() -> () {
+    // TODO
+}
+
+pub struct ExceptT<a, b, c> {
+    // TODO
+}
+
+pub struct ST<a> {
+    // TODO
+}
+
+pub fn runST() -> () {
+    // TODO
+}
