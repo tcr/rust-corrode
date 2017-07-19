@@ -769,38 +769,54 @@ pub fn interpretInitializer<s>(ty: CType, initial: CInit) -> EnvMonad<s, Rust::E
     // TODO function prototype is wrong
     pub fn helper(_0: Result, _1: Rust::Expr) -> Rust::Expr {
         match (_0, _1) {
-            (_, Initializer(Some(expr), initials)) if IntMap::null(initials) => {
-                __return(expr)
-            },
+            (_, Initializer(Some(expr), initials)) if IntMap::null(initials) => __return(expr),
             (IsArray(_, _, el), Initializer(expr, initials)) => {
                 match expr {
                     None => {
-                        __op_dollar_arrow(Rust::ArrayExpr, mapM((helper(el)), (IntMap::elems(initials))))
-                    },
-                    Some(_) => {
-                        unimplemented(initial)
-                    },
+                        __op_dollar_arrow(
+                            Rust::ArrayExpr,
+                            mapM((helper(el)), (IntMap::elems(initials))),
+                        )
+                    }
+                    Some(_) => unimplemented(initial),
                 }
-            },
+            }
             (IsStruct(__str, fields), Initializer(expr, initials)) => {
-                let fields_q = forM((IntMap::toList(initials)), box |(idx, value)| { match drop(idx, fields) {
-                    [(field, ty_q), _] => {
-                        /*do*/ {
-                            let value_q = helper(ty_q, value);
+                let fields_q = forM((IntMap::toList(initials)), box |(idx, value)| {
+                    match drop(idx, fields) {
+                        [(field, ty_q), _] => {
+                            /*do*/
+                            {
+                                let value_q = helper(ty_q, value);
 
-                            __return((field, value_q))
+                                __return((field, value_q))
+                            }
                         }
-                    },
-                    [] => {
-                        noTranslation(initial, (__op_addadd("internal error: ".to_string(), __op_addadd(show(strTy), __op_addadd(" doesn\'t have enough fields to initialize field ".to_string(), show(idx))))))
-                    },
-                } });
+                        [] => {
+                            noTranslation(
+                                initial,
+                                (__op_addadd(
+                                    "internal error: ".to_string(),
+                                    __op_addadd(
+                                        show(strTy),
+                                        __op_addadd(
+                                            " doesn\'t have enough fields to initialize field "
+                                                .to_string(),
+                                            show(idx),
+                                        ),
+                                    ),
+                                )),
+                            )
+                        }
+                    }
+                });
 
-                __op_dollar_arrow(Rust::StructExpr(__str), __op_mul_arrow(fields_q, __pure(expr)))
-            },
-            (_, _) => {
-                badSource(initial, "initializer".to_string())
-            },
+                __op_dollar_arrow(
+                    Rust::StructExpr(__str),
+                    __op_mul_arrow(fields_q, __pure(expr)),
+                )
+            }
+            (_, _) => badSource(initial, "initializer".to_string()),
         }
     }
 
@@ -1231,16 +1247,17 @@ pub fn interpretStatement<s>(
                     [defaultCase] => __return(defaultCase),
                     _ => lift(lift(badSource(stmt, "duplicate default cases".to_string()))),
                 };
-                
+
                 let conditionBlock = |(target, condition), defaultCase| {
-                    /*do*/ {
+                    /*do*/
+                    {
                         let label = newLabel;
 
                         addBlock(label, vec![], (CondBranch(condition, target, defaultCase)));
                         __return(label)
                     }
                 };
-                
+
                 let entry = __foldrM!(conditionBlock, defaultCase, (IntMap::toList(conditions)));
 
                 let (rest, end) = next;
@@ -1566,7 +1583,7 @@ pub fn cfgToRust<s, node: Pretty + Pos>(
 
     let mkLoop =
         |l, b| exprToStatements((Rust::Loop((Some((loopLabel(l)))), (statementsToBlock(b)))));
-    
+
     // TODO make fn
     let simplifyIf = |_0, _1, _2| match (_0, _1, _2) {
         (c, Rust::Block([], None), Rust::Block([], None)) => result(c),
@@ -1772,16 +1789,21 @@ pub fn interpretExpr<s>(_0: bool, expr: CExpr) -> EnvMonad<s, Result> {
                 let f_q = interpretExpr(demand, f);
 
                 let mkIf = |c_q, t_q, f_q| {
-                    Rust::IfThenElse(c_q, (Rust::Block(vec![], (Some(t_q)))), (Rust::Block(vec![], (Some(f_q)))))
+                    Rust::IfThenElse(
+                        c_q,
+                        (Rust::Block(vec![], (Some(t_q)))),
+                        (Rust::Block(vec![], (Some(f_q)))),
+                    )
                 };
 
-                if demand {                     
-promotePtr(expr, (mkIf(c_q)), t_q, f_q)} else {
-__return(Result)
-                    }, {
-                    resultType: IsVoid,
-                    resultMutable: Rust::Immutable,
-                    result: mkIf(c_q, (result(t_q)), (result(f_q)))
+                if demand {
+                    promotePtr(expr, (mkIf(c_q)), t_q, f_q)
+                } else {
+                    __return(Result {
+                        resultType: IsVoid,
+                        resultMutable: Rust::Immutable,
+                        result: mkIf(c_q, (result(t_q)), (result(f_q))),
+                    })
                 }
             }
         }
@@ -2847,13 +2869,18 @@ pub fn toRustType(_0: CType) -> Rust::TypeName {
         IsFunc(retTy, args, variadic) => {
             let typename = |/* TODO ViewPattern */
                             toRustType| { t };
-            
-            let args_q = intercalate(", ".to_string(), (__op_addadd(__map!((typename(snd)), args),
-                if variadic {
-                    vec!["...".to_string()]
-                } else {
-                    vec![]
-                })));
+
+            let args_q = intercalate(
+                ", ".to_string(),
+                (__op_addadd(
+                    __map!((typename(snd)), args),
+                    if variadic {
+                        vec!["...".to_string()]
+                    } else {
+                        vec![]
+                    },
+                )),
+            );
 
             Rust::TypeName(concat(vec![
                     "unsafe extern fn(".to_string(),
@@ -2867,17 +2894,11 @@ pub fn toRustType(_0: CType) -> Rust::TypeName {
             ]))
         }
         IsPtr(__mut, to) => {
-            let rustMut = |_0| {
-                match (_0) {
-                    Rust::Mutable => {
-                        "*mut ".to_string()
-                    },
-                    Rust::Immutable => {
-                        "*const ".to_string()
-                    },
-                }
+            let rustMut = |_0| match (_0) {
+                Rust::Mutable => "*mut ".to_string(),
+                Rust::Immutable => "*const ".to_string(),
             };
-            
+
             let to_q: Rust::TypeName = toRustType(to);
 
             Rust::TypeName((__op_addadd(rustMut(__mut), to_q)))
