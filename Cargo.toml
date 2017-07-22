@@ -18,3 +18,4 @@ matches = "0.1.6"
 lazy_static = "0.2"
 maplit = "*"
 parser-c = { path = "../parser-c", version = "0.2" }
+support-map = { path = "support-map" }

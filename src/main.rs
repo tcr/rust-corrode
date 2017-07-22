@@ -9,6 +9,7 @@ extern crate num;
 #[macro_use]
 extern crate maplit;
 extern crate parser_c;
+extern crate support_map;
 
 #[macro_use]
 pub mod support;
