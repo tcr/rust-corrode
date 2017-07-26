@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 #[macro_use] extern crate maplit;
 
 pub mod Map {
@@ -6,16 +8,28 @@ pub mod Map {
 
     pub type Map<A, B> = HashMap<A, B>;
 
+    pub fn empty<A: Hash + Eq, B>() -> HashMap<A, B> {
+        hashmap![]
+    }
+
+    pub fn lookup<A: Eq + Hash, B: Clone>(value: A, inside: HashMap<A, B>) -> Option<B> {
+        inside.get(&value).map(|x| x.clone())
+    }
+
+    #[test]
+    fn test_lookup() {
+        let mut a = empty();
+        a.insert("key", "value".to_string());
+
+        assert_eq!(lookup("key", a), Some("value".to_string()));
+    }
+
     pub fn singleton() -> () {
         // TODO
     }
 
     pub fn member() -> () {
         // TODO
-    }
-
-    pub fn lookup<A: Eq + Hash, B: Clone>(value: A, inside: HashMap<A, B>) -> Option<B> {
-        inside.get(&value).map(|x| x.clone())
     }
 
     pub fn delete<A: Eq + Hash, B>(key: A, mut input: HashMap<A, B>) -> HashMap<A, B> {
@@ -39,10 +53,6 @@ pub mod Map {
 
     pub fn fromListWith() -> () {
         // TODO
-    }
-
-    pub fn empty<A: Hash + Eq, B>() -> HashMap<A, B> {
-        hashmap![]
     }
 }
 
