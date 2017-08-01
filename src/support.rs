@@ -735,50 +735,6 @@ pub fn fromMaybe<A>(left: A, right: Option<A>) -> A {
 
 
 
-// Map things
-
-use std::hash::Hash;
-use std::fmt::Debug;
-use std::collections::HashSet;
-
-pub mod Set {
-    use std::hash::Hash;
-    use std::fmt::Debug;
-    use std::collections::HashSet;
-
-    #[derive(Clone, Debug)]
-    pub struct Set<T: Eq + Hash>(HashSet<T>);
-
-    pub fn member<T: Eq + Hash + Debug>(item: T, list: Set<T>) -> Set<T> {
-        list.0.contains(&item)
-    }
-
-    pub fn fromList<T: Eq + Hash + Debug>(list: Vec<T>) -> Set<T> {
-        // TODO
-        Set(HashSet::new())
-    }
-
-    pub fn insert<T: Eq + Hash + Debug>(item: T, mut list: Set<T>) -> Set<T> {
-        list.0.insert(item);
-        list
-    }
-
-    pub fn delete<T: Eq + Hash + Debug>(item: T, mut list: Set<T>) -> Set<T> {
-        list.0.remove(&item);
-        list
-    }
-
-    pub fn empty<T: Eq + Hash + Debug>() -> Set<T> {
-        Set(HashSet::new())
-    }
-
-    pub fn difference() -> () {}
-
-    pub fn notMember() -> () {}
-
-    pub fn singleton() -> () {}
-}
-
 
 // Array things
 

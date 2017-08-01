@@ -73,14 +73,14 @@ pub fn pPrintBlock(_0: Doc, _1: Block) -> Doc {
         (pre, Block([], e)) => {
             sep(vec![
                 __op_doc_concat(pre, text("{".to_string())),
-                nest(4, (maybe(empty, pPrint, e))),
+                nest(4, e.map(pPrint).unwrap_or(vec![])),
                 text("}".to_string()),
             ])
         }
         (pre, Block(ss, e)) => {
             sep(vec![
                 __op_doc_concat(pre, text("{".to_string())),
-                nest(4, (maybe(empty, pPrint, e))),
+                nest(4, e.map(pPrint).unwrap_or(vec![])),
                 text("}".to_string()),
             ])
         }

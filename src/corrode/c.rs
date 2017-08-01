@@ -67,7 +67,11 @@ fn outputIncomplete(a: Output) -> Set::Set<String> {
 }
 
 pub fn emitItems<s>(items: Vec<Rust::Item>) -> EnvMonad<s, ()> {
-    lift(tell(mempty { outputItems: items }))
+    lift(tell(Output {
+        outputItems: items,
+        outputExterns: Map::empty(),
+        outputIncomplete: Set::empty(),
+    }))
 }
 
 pub fn emitIncomplete<s>(kind: ItemKind, ident: Ident) -> EnvMonad<s, CType> {
@@ -76,7 +80,9 @@ pub fn emitIncomplete<s>(kind: ItemKind, ident: Ident) -> EnvMonad<s, CType> {
         let rewrites = lift((asks(itemRewrites)));
 
         if !((Map::member((kind, identToString(ident)), rewrites))) {
-            lift(tell(mempty {
+            lift(tell(Output {
+                outputItems: vec![],
+                outputExterns: Map::empty(),
                 outputIncomplete: Set::singleton((identToString(ident))),
             }))
         };
@@ -204,8 +210,15 @@ pub fn getSymbolIdent<s>(ident: Ident) -> EnvMonad<s, Option<Result>> {
     };
 
     let builtinSymbols = __op_addadd(
-        /* Expr::Generator */
-        Generator,
+        /*do*/ {
+            let w = vec![16, 32, 64];
+
+            __return((__op_addadd("__builtin_bswap".to_string(), show(w)), Result {
+                    resultType: IsFunc((IsInt(Unsigned, (BitWidth(w)))), vec![(None, IsInt(Unsigned, (BitWidth(w))))], false),
+                    resultMutable: Rust::Immutable,
+                    result: Rust::Path((Rust::PathSegments(vec![__op_addadd("u".to_string(), show(w)), "swap_bytes".to_string()])))
+                }))
+        },
         vec![
             ("__FILE__".to_string(), Result {
             resultType: IsPtr(Rust::Immutable, charType),
@@ -341,9 +354,11 @@ pub fn addExternIdent<s>(
 
                             let ty = (typeMutable(itype), typeRep(itype));
 
-                            lift(tell(__assign!(mempty, {
+                            lift(tell(Output {
+                                outputItems: vec![],
+                                outputIncomplete: Set::empty(),
                                                 outputExterns: Map::singleton(name, (mkItem(name, ty)))
-                                            })));
+                                            }));
                             __return(vec![name])
                         }
                     }
@@ -428,20 +443,52 @@ pub fn interpretTranslationUnit(
     );
 
     let completeTypes = Set::fromList(catMaybes(
-        /* Expr::Generator */
-        Generator,
+        /*do*/ {
+            let item = outputItems(output);
+
+            __return(match item {
+                    Rust::Item(_, _, Rust::Struct(name, _)) => {
+                        Some(name)
+                    },
+                    _ => {
+                        None
+                    },
+                })
+        }
     ));
 
     let incompleteTypes = Set::difference(outputIncomplete(output), completeTypes);
 
-    let incompleteItems = /* Expr::Generator */ Generator;
+    let incompleteItems = /*do*/ {
+        let name = Set::toList(incompleteTypes);
+
+        __return(Rust::Item(vec![], Rust::Private, (Rust::Enum(name, vec![]))))
+    };
 
     let itemNames = catMaybes(
-        /* Expr::Generator */
-        Generator,
+       /*do*/ {
+            let item = outputItems(output);
+
+            __return(match item {
+                    Rust::Item(_, _, Rust::Function(_, name, _, _, _)) => {
+                        Some(name)
+                    },
+                    Rust::Item(_, _, Rust::Static(_, Rust::VarName(name), _, _)) => {
+                        Some(name)
+                    },
+                    _ => {
+                        None
+                    },
+                })
+        }
     );
 
-    let externs_q = /* Expr::Generator */ Generator;
+    let externs_q = /*do*/ {
+        let (name, __extern) = Map::toList((outputExterns(output)));
+
+        notElem(name, itemNames);
+        __return(__extern)
+    };
 
     let items = __op_addadd(incompleteItems, outputItems(output));
 
@@ -563,7 +610,13 @@ pub fn interpretDeclarations<b, s>(
                                             addExternIdent(ident, deferred, box |name, (_mut, ty)| { match ty {
                                                         IsFunc(retTy, args, variadic) => {
                                                             {
-                                                                let formals = /* Expr::Generator */ Generator;
+                                                                let formals = /*do*/ {
+        let (idx, (mname, argTy)) = zip(vec![1], args);
+
+        let argName = maybe((__op_addadd("arg".to_string(), show(idx))), (applyRenames(snd)), mname);
+
+        __return((Rust::VarName(argName), toRustType(argTy)))
+    };
 
                                                             Rust::ExternFn(name, formals, variadic, (toRustRetType(retTy)))                                                            }
                                                         },
@@ -582,7 +635,7 @@ pub fn interpretDeclarations<b, s>(
                                     },
                                     (Some(CStatic(_)), _) => {
                                         /*do*/ {
-                                            let _TODO_RECORD_ {
+                                            let IntermediateType {
                                                 typeMutable: __mut,
                                                 typeRep: ty
                                             } = deferred;
@@ -596,7 +649,7 @@ pub fn interpretDeclarations<b, s>(
                                     },
                                     _ => {
                                         /*do*/ {
-                                            let _TODO_RECORD_ {
+                                            let IntermediateType {
                                                 typeMutable: __mut,
                                                 typeRep: ty
                                             } = deferred;
@@ -946,8 +999,22 @@ pub fn interpretFunction<s>(CFunctionDef(specs, declr, __OP__, CDeclarator(miden
                         /*do*/
                         {
                             let formals = sequence(
-                                /* Expr::Generator */
-                                Generator,
+                                /*do*/ {
+                                    let (arg, ty) = args;
+
+                                    __return(match arg {
+                                            Some((__mut, argident)) => {
+                                                /*do*/ {
+                                                    let argname = addSymbolIdent(argident, (__mut, ty));
+
+                                                    __return((__mut, Rust::VarName(argname), toRustType(ty)))
+                                                }
+                                            },
+                                            None => {
+                                                badSource(declr, "anonymous parameter".to_string())
+                                            },
+                                        })
+                                }
                             );
 
                             let returnValue = if (name == "_c_main".to_string()) {
@@ -2119,7 +2186,17 @@ BitWidth(32)
                                 (64, BitWidth(64)),
                             ];
 
-                        let allowed_types = /* Expr::Generator */ Generator;
+                        let allowed_types = /*do*/ {
+                            let (bits, w) = widths;
+
+                            let (true, s) = vec![(allow_signed, Signed), (allow_unsigned, Unsigned)];
+
+                            (v < __op_power(2, ((bits - if (s == Signed) {
+                    1} else {
+                    0
+                            }))));
+                            __return(IsInt(s, w))
+                        };
 
                         let repr_q = match repr {
                             DecRepr => Rust::DecRepr,
@@ -3138,7 +3215,12 @@ pub fn baseTypeOf<s>(
 
                             if shouldEmit {
                                 emitItems(vec![
-                                        Rust::Item(attrs, Rust::Public, (Rust::Struct(name, /* Expr::Generator */ Generator))),
+                                        Rust::Item(attrs, Rust::Public, (Rust::Struct(name, /*do*/ {
+                                            let (field, fieldTy) = fields;
+
+                                            __return((field, toRustType(fieldTy)))
+                                        }
+                                        ))),
                                         Rust::Item(vec![], Rust::Private, (Rust::CloneImpl((Rust::TypeName(name))))),
                                     ])
                             };
@@ -3355,8 +3437,17 @@ __return(itype)
                 /*do*/
                 {
                     let preAnsiArgs = Map::fromList(
-                        /* Expr::Generator */
-                        Generator,
+                        /*do*/ {
+                            let CDecl = |argspecs, declrs, _| {
+                                argtypes
+                            };
+
+                            let (Some(CDeclarator(Some(argname), _, _, _, pos)), None, None) = declrs;
+
+                            let declr_q = declrs.0;
+
+                            __return((argname, CDecl(argspecs, vec![(Some(declr_q), None, None)], pos)))
+                        }
                     );
 
                     let (args, variadic) = match foo {
@@ -3379,8 +3470,65 @@ __return(itype)
                     };
 
                     let args_q = sequence(
-                        /* Expr::Generator */
-                        Generator,
+                        /*do*/ {
+                            let arg = |args| {
+                                match args {
+                                    [CDecl([CTypeSpec(CVoidType(_))], [], _)] => {
+                                        vec![]
+                                    },
+                                    _ => {
+                                        args
+                                    },
+                                }
+                            };
+
+                            __return(/*do*/ {
+                                    let (storage, base_q) = baseTypeOf(argspecs);
+
+                                    match storage {
+                                        None => {
+                                            __return(())
+                                        },
+                                        Some(CRegister(_)) => {
+                                            __return(())
+                                        },
+                                        Some(s) => {
+                                            badSource(s, "storage class specifier on argument".to_string())
+                                        },
+                                    };
+                                    let (argname, argTy) = match declr_q {
+                                            [] => {
+                                                __return((None, base_q))
+                                            },
+                                            [(Some(argdeclr, __OP__, CDeclarator(argname, _, _, _, _)), None, None)] => {
+                                                /*do*/ {
+                                                    let argTy = derivedDeferredTypeOf(base_q, argdeclr, vec![]);
+
+                                                    __return((argname, argTy))
+                                                }
+                                            },
+                                            _ => {
+                                                badSource(arg, "function argument".to_string())
+                                            },
+                                        };
+
+                                    __return(/*do*/ {
+                                            let itype = argTy;
+
+                                            if (typeIsFunc(itype)) { (badSource(arg, "function as function argument".to_string())) };
+                                            let ty = match typeRep(itype) {
+                                                    IsArray(__mut, _, el) => {
+                                                        IsPtr(__mut, el)
+                                                    },
+                                                    orig => {
+                                                        orig
+                                                    },
+                                                };
+
+                                            __return((fmap((__op_tuple2((typeMutable(itype)))), argname), ty))
+                                        })
+                                })
+                        }
                     );
 
                     __return(box |itype| {

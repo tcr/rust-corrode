@@ -39,20 +39,40 @@ pub fn tailExpr(_0: Rust::Expr) -> Option<Option<Rust::Expr>> {
 }
 
 pub fn tailBlock(_0: Rust::Block) -> Rust::Block {
-    match _0 {
-        Rust::Block(
-            b,
-            Some(
-                /* TODO ViewPattern */
-                tailExpr,
-            ),
-        ) => Rust::Block(b, e),
-        Rust::Block(
-            /* TODO ViewPattern */
-            unsnoc,
-            None,
-        ) => Rust::Block(b, e),
-        b => b,
+    // (Rust.Block b (Just (tailExpr -> Just e))) = Rust.Block b e
+    fn view_0(_0: Rust::Block) -> Option<Rust::Block> {
+        let b = _0.0.clone();
+        if let Some(view) = _0.1 {
+            if let Some(e) = tailExpr(view) {
+                return Some(Rust::Block(b, e));
+            }
+        }
+        None
+    }
+
+    // (Rust.Block (unsnoc -> Just (b, Rust.Stmt (tailExpr -> Just e))) Nothing)
+    fn view_1(_0: Rust::Block) -> Option<Rust::Block> {
+        if let Some(view) = _0.0.clone() {
+            if let Some(view) = unsnoc(view) {
+                let b = view.0.clone();
+                if let Rust::Stmt(view) = view.1 {
+                    if let Some(e) = tailExpr(view) {
+                        if let None = _0.1 {
+                            return Some(Rust::Block(b, e));
+                        }
+                    }
+                }
+            }
+        }
+        None
+    }
+
+    if let Some(ret) = view_0(_0.clone()) {
+        ret
+    } else if let Some(ret) = view_1(_0.clone()) {
+        ret
+    } else {
+        _0
     }
 }
 
