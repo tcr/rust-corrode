@@ -698,6 +698,37 @@ pub fn designatorType(_0: Designator) -> CType {
 }
 
 pub fn objectFromDesignators<s>(_0: CType, _1: Vec<CDesignator>) -> EnvMonad<s, CurrentObject> {
+    pub fn go<s>(_0: CType, _1: Vec<CDesignator>, _2: Designator) -> EnvMonad<s, Designator> {
+        match (_0, _1, _2) {
+            (_, [], obj) => {
+                __pure(obj)
+            },
+            (IsArray(_, size, el), [CArrDesig(idxExpr, _), ds], obj) => {
+                /*do*/ {
+                    let idx = interpretConstExpr(idxExpr);
+
+                    go(el, ds, (From(el, (fromInteger(idx)), (replicate(((size - (fromInteger(idx) - 1))), el)), obj)))
+                }
+            },
+            (IsStruct(name, fields), [CMemberDesig(ident, _), ds], obj) => {
+                /*do*/ {
+                    let d = _1[0];
+                    match span((box |(field, _)| { applyRenames }), fields) {
+                        (_, []) => {
+                            badSource(d, (__op_addadd("designator for field not in struct ".to_string(), name)))
+                        },
+                        (earlier, [(_, ty_q), rest]) => {
+                            go(ty_q, ds, (From(ty_q, (length(earlier)), (__map!(snd, rest)), obj)))
+                        },
+                    }
+                }
+            },
+            (ty_q, [d, _], _) => {
+                badSource(d, (__op_addadd("designator for ".to_string(), show(ty_q))))
+            },
+        }
+    }
+
     match (_0, _1) {
         (_, []) => __pure(None),
         (ty, desigs) => __op_dollar_arrow(Some, go(ty, desigs, (Base(ty)))),
@@ -752,7 +783,7 @@ pub fn translateInitList<s>(ty: CType, list: CInitList) -> EnvMonad<s, Initializ
 
         let (_, initializer) = foldM(
             resolveCurrentObject,
-            (Some(base), mempty),
+            (Some(base), Set::empty()),
             objectsAndInitializers,
         );
 
@@ -1115,6 +1146,47 @@ pub fn wrapMain<s>(
             [IsInt(Signed, BitWidth(32)), [IsPtr(Rust::Mutable, IsPtr(Rust::Mutable, ty)), rest]] => {
                 let argcType = _0[0];
                 /* Expr::Error */ Error
+
+/*
+
+    wrapArgv (argcType@(IsInt Signed (BitWidth 32))
+            : IsPtr Rust.Mutable (IsPtr Rust.Mutable ty)
+            : rest) | ty == charType = do
+        (envSetup, envArgs) <- wrapEnvp rest
+        return (setup ++ envSetup, args ++ envArgs)
+        where
+        argv_storage = Rust.VarName "argv_storage"
+        argv = Rust.VarName "argv"
+        str = Rust.VarName "str"
+        vec = Rust.VarName "vec"
+        setup =
+            [ Rust.StmtItem [] (Rust.Use "::std::os::unix::ffi::OsStringExt")
+            , bind Rust.Mutable argv_storage $
+                chain "collect::<Vec<_>>" [] $
+                chain "map" [
+                    Rust.Lambda [str] (Rust.BlockExpr (Rust.Block
+                        ( bind Rust.Mutable vec (chain "into_vec" [] (Rust.Var str))
+                        : exprToStatements (chain "push" [
+                                Rust.Lit (Rust.LitByteChar '\NUL')
+                            ] (Rust.Var vec))
+                        ) (Just (Rust.Var vec))))
+                ] $
+                call "::std::env::args_os" []
+            , bind Rust.Mutable argv $
+                chain "collect::<Vec<_>>" [] $
+                chain "chain" [call "Some" [call "::std::ptr::null_mut" []]] $
+                chain "map" [
+                    Rust.Lambda [vec] (chain "as_mut_ptr" [] (Rust.Var vec))
+                ] $
+                chain "iter_mut" [] $
+                Rust.Var argv_storage
+            ]
+        args =
+            [ Rust.Cast (chain "len" [] (Rust.Var argv_storage)) (toRustType argcType)
+            , chain "as_mut_ptr" [] (Rust.Var argv)
+            ]
+
+*/
             }
             _ => unimplemented(declr),
         }
@@ -1126,6 +1198,19 @@ pub fn wrapMain<s>(
             [IsPtr(Rust::Mutable, IsPtr(Rust::Mutable, ty))] => {
                 /* Expr::Error */
                 Error
+/*
+
+wrapEnvp [arg@(IsPtr Rust.Mutable (IsPtr Rust.Mutable ty))] | ty == charType
+        = return (setup, args)
+        where
+        environ = Rust.VarName "environ"
+        setup =
+            [ Rust.StmtItem [] $
+                Rust.Extern [Rust.ExternStatic Rust.Immutable environ (toRustType arg)]
+            ]
+        args = [Rust.Var environ]
+
+*/
             }
             _ => unimplemented(declr),
         }
@@ -2743,6 +2828,9 @@ pub fn intPromote(_0: CType) -> CType {
         IsEnum(_) => enumReprType,
         IsInt(_, BitWidth(w)) => {
             /* Expr::Error */
+/*
+intPromote (IsInt _ (BitWidth w)) | w < 32 = IsInt Signed (BitWidth 32)
+*/
             Error
         }
         x => x,
@@ -2793,6 +2881,17 @@ pub fn integerConversionRank(_0: IntWidth, _1: IntWidth) -> Option<Ordering> {
         (WordWidth, WordWidth) => Some(EQ),
         (BitWidth(a), WordWidth) => {
             /* Expr::Error */
+/*
+
+integerConversionRank (BitWidth a) WordWidth
+    | a <= 32 = Just LT
+    | a >= 64 = Just GT
+integerConversionRank WordWidth (BitWidth b)
+    | b <= 32 = Just GT
+    | b >= 64 = Just LT
+
+*/
+
             Error
         }
         (WordWidth, BitWidth(b)) => {
@@ -2847,9 +2946,8 @@ pub fn compatiblePtr(_0: CType, _1: CType) -> CType {
 
             IsPtr((leastMutable(m1, m2)), (compatiblePtr(a, b)))
         }
-        (a, b) => {
-            /* Expr::Error */
-            Error
+        (a, b) if a == b => {
+            a
         }
         (_, _) => IsVoid,
     }

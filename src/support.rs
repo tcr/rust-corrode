@@ -883,6 +883,10 @@ pub fn forM() -> () {
     // TODO
 }
 
+pub fn zip() -> () {
+    // TODO
+}
+
 pub fn __pure() -> () {
     // TODO
 }
@@ -1046,6 +1050,10 @@ pub fn execState() -> () {
 }
 
 pub fn mapExceptT() -> () {
+    // TODO
+}
+
+pub fn runExceptT() -> () {
     // TODO
 }
 
