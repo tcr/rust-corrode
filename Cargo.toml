@@ -10,6 +10,10 @@ description = "C to Rust Translator (ported from Haskell)."
 repository = "http://github.com/tcr/corrode-but-in-rust"
 homepage = "http://github.com/tcr/corrode-but-in-rust"
 license = "GPL-2.0"
+build = "tango-build.rs"
+
+[build-dependencies.tango]
+git = "https://github.com/pnkfelix/tango"
 
 [dependencies]
 num = "0.1"
