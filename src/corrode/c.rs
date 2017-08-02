@@ -795,7 +795,7 @@ pub fn resolveCurrentObject<s>(
     (obj0, prior): (CurrentObject, Initializer),
     (obj1, cinitial): (CurrentObject, CInit),
 ) -> EnvMonad<s, (CurrentObject, Initializer)> {
-    match mplus(obj1, obj0) {
+    match obj1.or(obj0) {
         None => __return((None, prior)),
         Some(obj) => {
             /*do*/
@@ -851,7 +851,7 @@ pub fn resolveCurrentObject<s>(
 
 pub fn interpretInitializer<s>(ty: CType, initial: CInit) -> EnvMonad<s, Rust::Expr> {
     // TODO function prototype is wrong
-    pub fn helper(_0: Result, _1: Rust::Expr) -> Rust::Expr {
+    pub fn helper(initial: CInit, _0: Result, _1: Rust::Expr) -> Rust::Expr {
         match (_0, _1) {
             (_, Initializer(Some(expr), initials)) if IntMap::null(initials) => __return(expr),
             (IsArray(_, _, el), Initializer(expr, initials)) => {
@@ -859,7 +859,7 @@ pub fn interpretInitializer<s>(ty: CType, initial: CInit) -> EnvMonad<s, Rust::E
                     None => {
                         __op_dollar_arrow(
                             Rust::ArrayExpr,
-                            mapM((helper(el)), (IntMap::elems(initials))),
+                            mapM(|x| helper(initial, el, x), (IntMap::elems(initials))),
                         )
                     }
                     Some(_) => unimplemented(initial),
@@ -871,7 +871,7 @@ pub fn interpretInitializer<s>(ty: CType, initial: CInit) -> EnvMonad<s, Rust::E
                         [(field, ty_q), _] => {
                             /*do*/
                             {
-                                let value_q = helper(ty_q, value);
+                                let value_q = helper(initial, ty_q, value);
 
                                 __return((field, value_q))
                             }
@@ -882,7 +882,7 @@ pub fn interpretInitializer<s>(ty: CType, initial: CInit) -> EnvMonad<s, Rust::E
                                 (__op_addadd(
                                     "internal error: ".to_string(),
                                     __op_addadd(
-                                        show(strTy),
+                                        show(_0),
                                         __op_addadd(
                                             " doesn\'t have enough fields to initialize field "
                                                 .to_string(),
@@ -929,7 +929,7 @@ pub fn interpretInitializer<s>(ty: CType, initial: CInit) -> EnvMonad<s, Rust::E
                                 let elInit =
                                     zeroInitialize((Initializer(None, IntMap::empty)), elTy);
 
-                                let el = helper(elTy, elInit);
+                                let el = helper(initial, elTy, elInit);
 
                                 __return(
                                     (Initializer(
@@ -985,7 +985,7 @@ pub fn interpretInitializer<s>(ty: CType, initial: CInit) -> EnvMonad<s, Rust::E
 
         let zeroed = zeroInitialize(initial_q, ty);
 
-        helper(ty, zeroed)
+        helper(initial, ty, zeroed)
     }
 }
 
@@ -1140,77 +1140,63 @@ pub fn wrapMain<s>(
 
     let chain = |method, args, obj| Rust::MethodCall(obj, (Rust::VarName(method)), args);
 
-    let wrapArgv = |_0| {
-        match _0 {
+    let wrapEnvp = |arg| {
+        match arg {
             [] => __return((vec![], vec![])),
-            [IsInt(Signed, BitWidth(32)), [IsPtr(Rust::Mutable, IsPtr(Rust::Mutable, ty)), rest]] => {
-                let argcType = _0[0];
-                /* Expr::Error */ Error
+            [IsPtr(Rust::Mutable, IsPtr(Rust::Mutable, ty))] if ty == charType => {
+                let environ = Rust::VarName("environ".to_string());
 
-/*
+                let setup = vec![
+                        Rust::StmtItem(vec![], Rust::Extern(vec![Rust::ExternStatic(Rust::Immutable, environ, (toRustType(arg)))])),
+                    ];
 
-    wrapArgv (argcType@(IsInt Signed (BitWidth 32))
-            : IsPtr Rust.Mutable (IsPtr Rust.Mutable ty)
-            : rest) | ty == charType = do
-        (envSetup, envArgs) <- wrapEnvp rest
-        return (setup ++ envSetup, args ++ envArgs)
-        where
-        argv_storage = Rust.VarName "argv_storage"
-        argv = Rust.VarName "argv"
-        str = Rust.VarName "str"
-        vec = Rust.VarName "vec"
-        setup =
-            [ Rust.StmtItem [] (Rust.Use "::std::os::unix::ffi::OsStringExt")
-            , bind Rust.Mutable argv_storage $
-                chain "collect::<Vec<_>>" [] $
-                chain "map" [
-                    Rust.Lambda [str] (Rust.BlockExpr (Rust.Block
-                        ( bind Rust.Mutable vec (chain "into_vec" [] (Rust.Var str))
-                        : exprToStatements (chain "push" [
-                                Rust.Lit (Rust.LitByteChar '\NUL')
-                            ] (Rust.Var vec))
-                        ) (Just (Rust.Var vec))))
-                ] $
-                call "::std::env::args_os" []
-            , bind Rust.Mutable argv $
-                chain "collect::<Vec<_>>" [] $
-                chain "chain" [call "Some" [call "::std::ptr::null_mut" []]] $
-                chain "map" [
-                    Rust.Lambda [vec] (chain "as_mut_ptr" [] (Rust.Var vec))
-                ] $
-                chain "iter_mut" [] $
-                Rust.Var argv_storage
-            ]
-        args =
-            [ Rust.Cast (chain "len" [] (Rust.Var argv_storage)) (toRustType argcType)
-            , chain "as_mut_ptr" [] (Rust.Var argv)
-            ]
+                let args = vec![Rust::Var(environ)];
 
-*/
+                /*do*/ {
+                    __return((setup, args))
+                }
             }
             _ => unimplemented(declr),
         }
     };
 
-    let wrapEnvp = |arg| {
-        match arg {
+    let wrapArgv = |_0| {
+        match _0 {
             [] => __return((vec![], vec![])),
-            [IsPtr(Rust::Mutable, IsPtr(Rust::Mutable, ty))] => {
-                /* Expr::Error */
-                Error
-/*
+            [IsInt(Signed, BitWidth(32)), [IsPtr(Rust::Mutable, IsPtr(Rust::Mutable, ty)), rest]]
+            if ty == charType => {
+                let argcType = _0[0];
+                
+                let argv_storage = Rust::VarName("argv_storage".to_string());
 
-wrapEnvp [arg@(IsPtr Rust.Mutable (IsPtr Rust.Mutable ty))] | ty == charType
-        = return (setup, args)
-        where
-        environ = Rust.VarName "environ"
-        setup =
-            [ Rust.StmtItem [] $
-                Rust.Extern [Rust.ExternStatic Rust.Immutable environ (toRustType arg)]
-            ]
-        args = [Rust.Var environ]
+                let argv = Rust::VarName("argv".to_string());
 
-*/
+                let __str = Rust::VarName("str".to_string());
+
+                let vec = Rust::VarName("vec".to_string());
+
+                let setup = vec![
+                        Rust::StmtItem(vec![], (Rust::Use("::std::os::unix::ffi::OsStringExt".to_string()))),
+                        bind(Rust::Mutable, argv_storage, chain("collect::<Vec<_>>".to_string(), vec![], chain("map".to_string(), vec![
+                                    Rust::Lambda(vec![__str], (Rust::BlockExpr((Rust::Block((__op_concat(bind(Rust::Mutable, vec, (chain("into_vec".to_string(), vec![], (Rust::Var(__str))))), exprToStatements((chain("push".to_string(), vec![Rust::Lit((Rust::LitByteChar('\u{0}')))], (Rust::Var(vec))))))), (Some((Rust::Var(vec))))))))),
+                                ], call("::std::env::args_os".to_string(), vec![])))),
+                        bind(Rust::Mutable, argv, chain("collect::<Vec<_>>".to_string(), vec![], chain("chain".to_string(), vec![
+                                    call("Some".to_string(), vec![call("::std::ptr::null_mut".to_string(), vec![])]),
+                                ], chain("map".to_string(), vec![
+                                        Rust::Lambda(vec![vec], (chain("as_mut_ptr".to_string(), vec![], (Rust::Var(vec))))),
+                                    ], chain("iter_mut".to_string(), vec![], Rust::Var(argv_storage)))))),
+                    ];
+
+                let args = vec![
+                        Rust::Cast((chain("len".to_string(), vec![], (Rust::Var(argv_storage)))), (toRustType(argcType))),
+                        chain("as_mut_ptr".to_string(), vec![], (Rust::Var(argv))),
+                    ];
+
+                /*do*/ {
+                    let (envSetup, envArgs) = wrapEnvp(rest);
+
+                    __return((__op_addadd(setup, envSetup), __op_addadd(args, envArgs)))
+                }
             }
             _ => unimplemented(declr),
         }
@@ -1765,7 +1751,25 @@ pub fn cfgToRust<s, node: Pretty + Pos>(
         )
     };
 
-    let mkMatch = flip((foldr(go)));
+    let go = |(l, t), f| {
+        exprToStatements((Rust::IfThenElse((Rust::CmpEQ((Rust::Var(currentBlock)), (fromIntegral(l)))), (statementsToBlock(t)), (statementsToBlock(f)))))
+    };
+
+    let simplifyIf = |_0, _1, _2| {
+        match (_0, _1, _2) {
+            (c, Rust::Block([], None), Rust::Block([], None)) => {
+                result(c)
+            },
+            (c, Rust::Block([], None), f) => {
+                Rust::IfThenElse((toNotBool(c)), f, (Rust::Block(vec![], None)))
+            },
+            (c, t, f) => {
+                Rust::IfThenElse((toBool(c)), t, f)
+            },
+        }
+    };
+
+    let mkMatch = |x, y| __foldr!(go, y, x);
 
     /*do*/
     {
@@ -2826,12 +2830,8 @@ pub fn intPromote(_0: CType) -> CType {
     match (_0) {
         IsBool => IsInt(Signed, (BitWidth(32))),
         IsEnum(_) => enumReprType,
-        IsInt(_, BitWidth(w)) => {
-            /* Expr::Error */
-/*
-intPromote (IsInt _ (BitWidth w)) | w < 32 = IsInt Signed (BitWidth 32)
-*/
-            Error
+        IsInt(_, BitWidth(w)) if w < 32 => {
+            IsInt(Signed, BitWidth(32))
         }
         x => x,
     }
@@ -2879,25 +2879,10 @@ pub fn integerConversionRank(_0: IntWidth, _1: IntWidth) -> Option<Ordering> {
     match (_0, _1) {
         (BitWidth(a), BitWidth(b)) => Some((compare(a, b))),
         (WordWidth, WordWidth) => Some(EQ),
-        (BitWidth(a), WordWidth) => {
-            /* Expr::Error */
-/*
-
-integerConversionRank (BitWidth a) WordWidth
-    | a <= 32 = Just LT
-    | a >= 64 = Just GT
-integerConversionRank WordWidth (BitWidth b)
-    | b <= 32 = Just GT
-    | b >= 64 = Just LT
-
-*/
-
-            Error
-        }
-        (WordWidth, BitWidth(b)) => {
-            /* Expr::Error */
-            Error
-        }
+        (BitWidth(a), WordWidth) if a <= 32 => Some(LT),
+        (BitWidth(a), WordWidth) if a >= 64 => Some(GT),
+        (WordWidth, BitWidth(b)) if b <= 32 => Some(GT),
+        (WordWidth, BitWidth(b)) if b >= 64 => Some(LT),
         (_, _) => None,
     }
 }
@@ -3042,8 +3027,12 @@ pub fn toRustType(_0: CType) -> Rust::TypeName {
         IsFloat(w) => Rust::TypeName((__op_concat('f', show(w)))),
         IsVoid => Rust::TypeName("::std::os::raw::c_void".to_string()),
         IsFunc(retTy, args, variadic) => {
-            let typename = |/* TODO ViewPattern */
-                            toRustType| { t };
+            let typename = |view| {
+                match toRustType(view) {
+                    Rust::TypeName(t) => t,
+                    _ => unreachable!(),
+                }
+            };
 
             let args_q = intercalate(
                 ", ".to_string(),
@@ -3079,6 +3068,13 @@ pub fn toRustType(_0: CType) -> Rust::TypeName {
             Rust::TypeName((__op_addadd(rustMut(__mut), to_q)))
         }
         IsArray(_, size, el) => {
+            let typename = |view| {
+                match toRustType(view) {
+                    Rust::TypeName(t) => t,
+                    _ => unreachable!(),
+                }
+            };
+
             Rust::TypeName(
                 (__op_addadd(
                     "[".to_string(),
@@ -3490,9 +3486,9 @@ pub fn derivedTypeOf<s>(
 pub fn derivedDeferredTypeOf<s>(
     deferred: EnvMonad<s, IntermediateType>,
     declr: CDeclarator<NodeInfo>,
-    __OP__: Vec<CDecl>,
-    CDeclarator(_, derived, _, _, _): EnvMonad<s, EnvMonad<s, IntermediateType>>,
+    argtypes: Vec<CDecl>,
 ) -> EnvMonad<s, EnvMonad<s, IntermediateType>> {
+    let derived = argtypes.1.clone();
 
     let derive = |_0| {
         match (_0) {
@@ -3536,11 +3532,17 @@ __return(itype)
                 {
                     let preAnsiArgs = Map::fromList(
                         /*do*/ {
-                            let CDecl = |argspecs, declrs, _| {
-                                argtypes
+                            let (argspecs, declrs) = if let CDeclaration::CDecl(argspecs, declrs, _) = argtypes {
+                                (argspecs, declrs)
+                            } else {
+                                unreachable!();
                             };
 
-                            let (Some(CDeclarator(Some(argname), _, _, _, pos)), None, None) = declrs;
+                            let (argname, pos) = if let (Some(CDeclarator(Some(argname), _, _, _, pos)), None, None) = declrs {
+                                (argname, pos)
+                            } else {
+                                unreachable!();
+                            };
 
                             let declr_q = declrs.0;
 
@@ -3569,15 +3571,19 @@ __return(itype)
 
                     let args_q = sequence(
                         /*do*/ {
-                            let arg = |args| {
-                                match args {
-                                    [CDecl([CTypeSpec(CVoidType(_))], [], _)] => {
-                                        vec![]
-                                    },
-                                    _ => {
-                                        args
-                                    },
-                                }
+                            let arg = match args {
+                                [CDecl([CTypeSpec(CVoidType(_))], [], _)] => {
+                                    vec![]
+                                },
+                                _ => {
+                                    args
+                                },
+                            };
+
+                            let (argspecs, declr_q) = if let CDecl(argspecs, declr_q, _) = arg {
+                                (argspecs, declr_q)
+                            } else {
+                                unreachable!()
                             };
 
                             __return(/*do*/ {
@@ -3623,7 +3629,7 @@ __return(itype)
                                                     },
                                                 };
 
-                                            __return((fmap((__op_tuple2((typeMutable(itype)))), argname), ty))
+                                            __return((__fmap!((__op_tuple2((typeMutable(itype)))), argname), ty))
                                         })
                                 })
                         }

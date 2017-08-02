@@ -224,6 +224,11 @@ pub fn __op_assign_div(l: isize, r: isize) -> isize {
     l / r
 }
 
+pub fn __op_power(l: isize, r: isize) -> isize {
+    // TODO
+    l ^ r
+}
+
 pub fn __op_tuple2<A, B>(left: A, right: B) -> (A, B) {
     (left, right)
 }
