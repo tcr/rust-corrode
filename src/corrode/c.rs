@@ -1231,7 +1231,7 @@ pub struct SwitchCases(IntMap::IntMap<Option<Result>>);
 
 
 pub type CSourceBuildCFGT<s, a> = BuildCFGT<
-    RWST<OuterLabels, SwitchCases, Map::Map<Ident, Label>, EnvMonad<s>>,
+    RWST<OuterLabels, SwitchCases, Map::Map<Ident, Label>, EnvMonad<s, ()>>,
     Vec<Rust::Stmt>,
     Result,
     a,

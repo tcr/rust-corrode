@@ -115,7 +115,7 @@ pub fn addBlock<m, s, c>(
     }
 }
 
-pub fn buildCFG<m, s, c>(root: BuildCFGT<m, s, c, Label>) -> m<CFG<Unordered, s, c>> {
+pub fn buildCFG<m, s, c>(root: BuildCFGT<m, s, c, Label>) -> CFG<Unordered, s, c> {
     /*do*/
     {
         let (label, __final) = runStateT(root, (BuildState(0, IntMap::empty)));
@@ -124,7 +124,7 @@ pub fn buildCFG<m, s, c>(root: BuildCFGT<m, s, c, Label>) -> m<CFG<Unordered, s,
     }
 }
 
-pub fn removeEmptyBlocks<k, s, c>(CFG(start, blocks): CFG<k, f<s>, c>) -> CFG<Unordered, f<s>, c> {
+pub fn removeEmptyBlocks<k, f, c>(CFG(start, blocks): CFG<k, f, c>) -> CFG<Unordered, f, c> {
 
     fn go() -> () {
         /*do*/
