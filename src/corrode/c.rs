@@ -928,8 +928,8 @@ pub fn interpretInitializer<s>(ty: CType, initial: CInit) -> EnvMonad<s, Rust::E
             (i, __OP__, Initializer(None, initials), origTy) => {
                 __op_bind(completeType(origTy), box |t| {
                     match t {
-                        IsBool(..) => __return(scalar((Rust::Lit((Rust::LitBool(false)))))),
-                        IsVoid(..) => badSource(initial, "initializer for void".to_string()),
+                        IsBool => __return(scalar((Rust::Lit((Rust::LitBool(false)))))),
+                        IsVoid => badSource(initial, "initializer for void".to_string()),
                         IsInt(..) => {
                             __return(scalar(
                                 (Rust::Lit((Rust::LitInt(0, Rust::DecRepr, (toRustType(t)))))),
@@ -1182,7 +1182,7 @@ pub fn wrapMain<s>(
     let wrapArgv = |_0| {
         match _0 {
             [] => __return((vec![], vec![])),
-            [IsInt(Signed, BitWidth(32)), [IsPtr(Rust::Mutable, IsPtr(Rust::Mutable, ty)), rest]]
+            [IsInt(Signed, BitWidth(32)), [IsPtr(Rust::Mutable, IsPtr(Rust::Mutable, box ty)), rest]]
             if ty == charType => {
                 let argcType = _0[0];
                 
@@ -2327,14 +2327,14 @@ BitWidth(32)
                 }
                 CCharConst(CChar(ch, false), _) => {
                     __return(Result {
-                        resultType: charType,
+                        resultType: charType(),
                         resultMutable: Rust::Immutable,
                         result: Rust::Lit((Rust::LitByteChar(ch))),
                     })
                 }
                 CStrConst(CString(__str, false), _) => {
                     __return(Result {
-                        resultType: IsArray(Rust::Immutable, ((length(__str) + 1)), charType),
+                        resultType: IsArray(Rust::Immutable, ((length(__str) + 1)), charType()),
                         resultMutable: Rust::Immutable,
                         result: Rust::Deref(
                             (Rust::Lit(

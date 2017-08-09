@@ -107,8 +107,8 @@ pub fn parseCrateMap() -> Either<String, CrateMap> {
     )
 }
 
-pub fn mergeCrateMaps() -> Map::Map<String, CrateMap> {
-    Map::fromListWith((Map::unionWith((__op_addadd))))
+pub fn mergeCrateMaps(input: Vec<(String, CrateMap)>) -> Map::Map<String, CrateMap> {
+    Map::fromListWith(|a, b| Map::unionWith(__op_addadd, a, b), input)
 }
 
 pub fn splitModuleMap(modName: String, crates: CratesMap) -> (ModuleMap, CratesMap) {
@@ -142,11 +142,10 @@ pub fn rewritesFromCratesMap(crates: CratesMap) -> ItemRewrites {
             Map::toList(mods).into_iter()
             .flat_map(|(modName, items)| {
                 items.into_iter()
-                .flat_map(|(item, new): ((ItemKind, String), String)| {
+                .map(|(item, new): ((ItemKind, String), String)| {
                     (item, setCrate(vec![modName, new]))
-                })
-            })
-        })
-        .collect()
+                }).collect()
+            }).collect()
+        }).collect()
     })
 }
