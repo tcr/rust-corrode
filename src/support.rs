@@ -11,6 +11,17 @@ use std::str::FromStr;
 
 pub use support_map::*;
 
+trait ExtendExt {
+    fn extend_self(self, other: Self) -> Self;
+}
+
+impl<T> ExtendExt for Vec<T> {
+    fn extend_self(self, other: Self) -> Self {
+        self.extend(other);
+        self
+    }
+}
+
 pub trait OpAddable {
     fn add(self, right: Self) -> Self;
 }
@@ -781,6 +792,7 @@ pub use self::Ordering::*;
 // Text
 // https://hackage.haskell.org/package/pretty-1.1.3.5/docs/Text-PrettyPrint-HughesPJ.html#t:Doc
 
+#[derive(PartialEq, Eq, Debug)]
 pub struct Doc {
     contents: String,
 }

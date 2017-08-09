@@ -19,7 +19,7 @@ macro_rules! __fmap {
 // use Data::Map;
 // use Data::Maybe;
 
-#[derive(Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[derive(Debug, Eq, PartialEq, PartialOrd, Ord, Clone, Hash)]
 pub enum ItemKind {
     Enum,
     Struct,
@@ -60,7 +60,7 @@ pub fn parseCrateMap() -> Either<String, CrateMap> {
             (__crate, items) if _0.len() == 1 && isSuffixOf(":", _0[0]) => {
                 __return(Map::insert(init(_0[0]), items(__crate), []))
             }
-            _ => Left(unwords(vec!["invalid crate map entry:"].extend(_0))),
+            _ => Left(unwords(vec!["invalid crate map entry:"].extend_self(_0))),
         }
     };
 
@@ -85,12 +85,12 @@ pub fn parseCrateMap() -> Either<String, CrateMap> {
     fn parseItemKind(mut _0: Vec<String>) -> (ItemKind, Vec<String>) {
         let left = _0.remove(0);
         //TODO check out arms
-        match (left, _0) {
+        match (left.as_ref(), _0) {
             ("enum", rest) => (Enum, rest),
             ("struct", rest) => (Enum, rest),
             ("union", rest) => (Enum, rest),
             ("typedef", rest) => (Enum, rest),
-            (left, mut rest) => {
+            (_, mut rest) => {
                 rest.insert(0, left);
                 (Enum, rest)
             }
@@ -127,15 +127,26 @@ pub fn splitModuleMap(modName: String, crates: CratesMap) -> (ModuleMap, CratesM
 }
 
 pub fn rewritesFromCratesMap(crates: CratesMap) -> ItemRewrites {
-    //TODO
-    // Map::fromList
-    //     [ (item, setCrate [modName, new])
-    //     | (crateName, mods) <- Map::toList(crates)
-    //     , let setCrate = match crateName
-    //             "" -> id
-    //             _ -> (crateName :)
-    //     , (modName, items) <- Map::toList(mods)
-    //     , (item, new) <- items
-    //     ]
-    // )
+    Map::fromList(/*do*/ {
+        Map::toList(crates).into_iter()
+        .flat_map(|(crateName, mods)| {
+            let setCrate: Box<Fn(Vec<String>) -> Vec<String>> = match crateName.as_ref() {
+                "" => {
+                     Box::new(|x| x)
+                },
+                _ => {
+                     Box::new(|x| __op_concat(crateName, x))
+                },
+            };
+
+            Map::toList(mods).into_iter()
+            .flat_map(|(modName, items)| {
+                items.into_iter()
+                .flat_map(|(item, new): ((ItemKind, String), String)| {
+                    (item, setCrate(vec![modName, new]))
+                })
+            })
+        })
+        .collect()
+    })
 }

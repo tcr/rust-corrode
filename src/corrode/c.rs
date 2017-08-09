@@ -928,19 +928,19 @@ pub fn interpretInitializer<s>(ty: CType, initial: CInit) -> EnvMonad<s, Rust::E
             (i, __OP__, Initializer(None, initials), origTy) => {
                 __op_bind(completeType(origTy), box |t| {
                     match t {
-                        IsBool {} => __return(scalar((Rust::Lit((Rust::LitBool(false)))))),
-                        IsVoid {} => badSource(initial, "initializer for void".to_string()),
-                        IsInt {} => {
+                        IsBool(..) => __return(scalar((Rust::Lit((Rust::LitBool(false)))))),
+                        IsVoid(..) => badSource(initial, "initializer for void".to_string()),
+                        IsInt(..) => {
                             __return(scalar(
                                 (Rust::Lit((Rust::LitInt(0, Rust::DecRepr, (toRustType(t)))))),
                             ))
                         }
-                        IsFloat {} => {
+                        IsFloat(..) => {
                             __return(scalar(
                                 (Rust::Lit((Rust::LitFloat("0".to_string(), (toRustType(t)))))),
                             ))
                         }
-                        IsPtr {} => __return(scalar((Rust::Cast(0, (toRustType(t)))))),
+                        IsPtr(..) => __return(scalar((Rust::Cast(0, (toRustType(t)))))),
                         IsArray(_, size, _) if (IntMap::size(initials) == size) => __return(i),
                         IsArray(_, size, elTy) => {
                             /*do*/
@@ -958,7 +958,7 @@ pub fn interpretInitializer<s>(ty: CType, initial: CInit) -> EnvMonad<s, Rust::E
                                 )
                             }
                         }
-                        IsFunc {} => __return(scalar((Rust::Cast(0, (toRustType(t)))))),
+                        IsFunc(..) => __return(scalar((Rust::Cast(0, (toRustType(t)))))),
                         IsStruct(_, fields) => {
                             /*do*/
                             {
@@ -973,7 +973,7 @@ pub fn interpretInitializer<s>(ty: CType, initial: CInit) -> EnvMonad<s, Rust::E
                                 __return((Initializer(None, (IntMap::union(initials, zeros)))))
                             }
                         }
-                        IsEnum {} => unimplemented(initial),
+                        IsEnum(..) => unimplemented(initial),
                         IsIncomplete(_) => {
                             badSource(initial, "initialization of incomplete type".to_string())
                         }
@@ -1428,9 +1428,9 @@ pub fn interpretStatement<s>(
             {
                 let c_q = lift(lift(interpretExpr(true, c)));
 
-                let after = newLabel;
+                let after = newLabel();
 
-                let headerLabel = newLabel;
+                let headerLabel = newLabel();
 
                 let (bodyEntry, bodyTerm) = setBreak(
                     after,
@@ -1440,7 +1440,7 @@ pub fn interpretStatement<s>(
                     ),
                 );
 
-                let bodyLabel = newLabel;
+                let bodyLabel = newLabel();
 
                 addBlock(bodyLabel, bodyEntry, bodyTerm);
                 addBlock(

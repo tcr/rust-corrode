@@ -791,7 +791,7 @@ pub fn hasMultiple<s, c>(list: Vec<Structure<s, c>>) -> bool {
 
     let go = |_0| match (_0) {
         Multiple {} => true,
-        Simple(_, term) => vec![term].map(|x| hasMultiple(x)).any(|x| x),
+        Simple(_, term) => vec![term].into_iter().map(|x| hasMultiple(x)).any(|x| x),
         Loop(body) => hasMultiple(body),
     };
 
