@@ -61,10 +61,9 @@ pub mod Map {
         assert_eq!(&toList(a), &[("key", "value")]);
     }
 
-    pub fn unionWith<A: Hash + Eq, B>(left: HashMap<A, B>, right: HashMap<A, B>) -> HashMap<A, B> {
-        let mut a: Vec<_> = left.into_iter().collect();
-        a.extend(right.into_iter().collect::<Vec<_>>());
-        a.into_iter().collect()
+    pub fn unionWith<A: Hash + Eq + Clone, B>(apply: Box<Fn(B, B) -> B>, left: HashMap<A, B>, right: HashMap<A, B>) -> HashMap<A, B> {
+        //TODO
+        unreachable!();
     }
 
     pub fn fromListWith<A: Hash + Eq + Clone, B>(apply: Box<Fn(B, B) -> B>, input: Vec<(A, B)>) -> HashMap<A, B> {
@@ -164,10 +163,9 @@ pub mod IntMap {
         input.into_iter().collect()
     }
 
-    pub fn unionWith<B>(left: HashMap<isize, B>, right: HashMap<isize, B>) -> HashMap<isize, B> {
-        let mut a: Vec<_> = left.into_iter().collect();
-        a.extend(right.into_iter().collect::<Vec<_>>());
-        a.into_iter().collect()
+    pub fn unionWith<B>(apply: Box<Fn(B, B) -> B>, left: HashMap<isize, B>, right: HashMap<isize, B>) -> HashMap<isize, B> {
+        //TODO
+        unreachable!();
     }
 
     pub fn difference<B: Clone>(left: HashMap<isize, B>, right: HashMap<isize, B>) -> HashMap<isize, B> {
