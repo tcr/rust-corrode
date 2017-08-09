@@ -36,7 +36,7 @@ pub struct Unordered;
 pub struct DepthFirst;
 
 
-pub struct CFG<k, s, c>(Label, IntMap::IntMap<BasicBlock<s, c>>);
+pub struct CFG<k, s, c>(k, Label, IntMap::IntMap<BasicBlock<s, c>>);
 
 
 pub fn prettyCFG<k, s, c>(

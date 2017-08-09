@@ -34,6 +34,25 @@ use parser_c::data::node::*;
 use parser_c::data::position::*;
 use parser_c::syntax::constants::*;
 
+
+fn identToString(ident: Ident) -> String {
+    ident.to_string().clone()
+}
+
+fn posOf<T: Pos>(p: T) -> Position {
+    p.into_position()
+}
+
+fn nodeInfo<T: CNode>(p: T) -> NodeInfo {
+    p.node_info()
+}
+
+fn internalIdent(p: String) -> Ident {
+    Ident::internal(p)
+}
+
+
+
 pub type EnvMonad<s, x> = ExceptT<String, RWST<FunctionContext, Output, EnvState<s>, ST<s>>, x>;
 
 pub struct FunctionContext {
@@ -2263,12 +2282,12 @@ pub fn interpretExpr<s>(_0: bool, expr: CExpr) -> EnvMonad<s, Result> {
             match c {
                 CIntConst(CInteger(v, repr, flags), _) => {
                     {
-                        let allow_signed = not((testFlag(FlagUnsigned, flags)));
+                        let allow_signed = not((flags.contains(CIntFlags::FLAG_UNSIGNED)));
 
                         let allow_unsigned = (not(allow_signed) || __op_assign_div(repr, DecRepr));
 
                         let widths = vec![
-                                (32, if any((testFlag(flags)), vec![FlagLongLong, FlagLong]) {                             
+                                (32, if any(|x| { flags.contains(x) }, vec![CIntFlags::FLAG_LONGLONG, CIntFlags::FLAG_LONG]) {                             
 WordWidth} else {
 BitWidth(32)
                             }),
@@ -2971,14 +2990,14 @@ pub fn promotePtr<a, b, s, node: Pretty + Pos>(
     }
 }
 
-#[derive(Debug, Eq)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum Signed {
     Signed,
     Unsigned,
 }
 pub use self::Signed::*;
 
-#[derive(Debug, Eq)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum IntWidth {
     BitWidth(isize),
     WordWidth,
@@ -3340,7 +3359,7 @@ pub fn baseTypeOf<s>(
                                 {
                                     let name = uniqueName("Union".to_string());
 
-                                    __return((internalIdentAt((node.posOf()), name)))
+                                    __return((Ident::internal_at(node.posOf(), name)))
                                 }
                             }
                         };

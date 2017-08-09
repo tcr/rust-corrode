@@ -9,15 +9,15 @@ use corollary_support::*;
 // use Numeric;
 // use Text::PrettyPrint::HughesPJClass;
 
-#[derive(Debug, Eq)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct Lifetime(pub String);
 
 
-#[derive(Debug, Eq)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct TypeName(pub String);
 
 
-#[derive(Debug, Eq)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum LitIntRepr {
     DecRepr,
     OctalRepr,
@@ -25,7 +25,7 @@ pub enum LitIntRepr {
 }
 pub use self::LitIntRepr::*;
 
-#[derive(Debug, Eq)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum Lit {
     LitByteStr(String),
     LitByteChar(char),
@@ -35,21 +35,21 @@ pub enum Lit {
 }
 pub use self::Lit::*;
 
-#[derive(Debug, Eq)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct VarName(pub String);
 
 #[derive(Debug)]
 pub struct PathSegments(pub Vec<String>);
 
 
-#[derive(Debug, Eq)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum Visibility {
     Public,
     Private,
 }
 pub use self::Visibility::*;
 
-#[derive(Debug, Eq)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum Mutable {
     Immutable,
     Mutable,

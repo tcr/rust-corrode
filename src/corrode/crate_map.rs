@@ -19,7 +19,7 @@ macro_rules! __fmap {
 // use Data::Map;
 // use Data::Maybe;
 
-#[derive(Debug, Eq, Ord)]
+#[derive(Debug, Eq, PartialEq, PartialOrd, Ord)]
 pub enum ItemKind {
     Enum,
     Struct,
