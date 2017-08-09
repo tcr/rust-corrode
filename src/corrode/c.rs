@@ -53,7 +53,7 @@ fn internalIdent(p: String) -> Ident {
 
 
 
-pub type EnvMonad<s, x> = ExceptT<String, RWST<FunctionContext, Output, EnvState<s>, ST<s>>, x>;
+pub type EnvMonad<s, x> = ExceptT<String, RWST<FunctionContext, Output, EnvState<s>, ST<s, x>>, x>;
 
 pub struct FunctionContext {
     functionReturnType: Option<CType>,
@@ -705,7 +705,7 @@ pub type CurrentObject = Option<Designator>;
 #[derive(Debug)]
 pub enum Designator {
     Base(CType),
-    From(CType, isize, Vec<CType>, Designator),
+    From(CType, isize, Vec<CType>, Box<Designator>),
 }
 pub use self::Designator::*;
 
@@ -3017,9 +3017,9 @@ pub enum CType {
     IsInt(Signed, IntWidth),
     IsFloat(isize),
     IsVoid,
-    IsFunc(CType, Vec<(Option<(Rust::Mutable, Ident)>, CType)>, bool),
-    IsPtr(Rust::Mutable, CType),
-    IsArray(Rust::Mutable, isize, CType),
+    IsFunc(Box<CType>, Vec<(Option<(Rust::Mutable, Ident)>, Box<CType>)>, bool),
+    IsPtr(Rust::Mutable, Box<CType>),
+    IsArray(Rust::Mutable, isize, Box<CType>),
     IsStruct(String, Vec<(String, CType)>),
     IsEnum(String),
     IsIncomplete(Ident),

@@ -1035,7 +1035,7 @@ pub fn mapRWST() -> () {
     // TODO
 }
 
-pub struct RWST<a, b, c, d> {}
+pub struct RWST<a, b, c, d>(a, b, c, d);
 
 
 pub fn mapStateT() -> () {
@@ -1046,9 +1046,7 @@ pub fn runStateT() -> () {
     // TODO
 }
 
-pub struct StateT<a, b, c> {
-    // TODO
-}
+pub struct StateT<a, b, c>(a, b, c);
 
 pub fn execState() -> () {
     // TODO
@@ -1062,13 +1060,9 @@ pub fn runExceptT() -> () {
     // TODO
 }
 
-pub struct ExceptT<a, b, c> {
-    // TODO
-}
+pub struct ExceptT<a, b, c>(a, b, c);
 
-pub struct ST<a> {
-    // TODO
-}
+pub struct ST<s, a>(s, a);
 
 pub fn runST() -> () {
     // TODO
